@@ -1,0 +1,167 @@
+{
+  "identity": {
+    "name": "Nishil Patel",
+    "role": "AI Engineer",
+    "location": "Ahmedabad, India",
+    "email": "nishil1753@gmail.com",
+    "links": {
+      "linkedin": "UPDATE: https://linkedin.com/in/your-handle",
+      "github": "UPDATE: https://github.com/your-handle",
+      "resume": "/Nishil_Patel_Resume.pdf"
+    },
+    "phone": "UPDATE: omitted from the public site on purpose — it stays on the PDF only"
+  },
+
+  "hero": {
+    "line1": "I build LLM systems",
+    "line2": "that hold up in production.",
+    "standfirst": "AI Engineer at FortifAI, working on an enterprise due diligence platform that orchestrates Claude and OpenAI models into structured risk reports. I spend most of my time on the unglamorous half: retrieval that returns the right chunk, pipelines that fail loudly, and token budgets that don't quietly triple.",
+    "status": "Open to conversations about AI engineering roles."
+  },
+
+  "experience": [
+    {
+      "company": "FortifAI Inc.",
+      "title": "AI Engineer",
+      "location": "Ahmedabad, India",
+      "start": "2025-07",
+      "end": null,
+      "endLabel": "Present",
+      "summary": "Production backend for D7, an AI-powered third-party due diligence product.",
+      "points": [
+        "Built and maintained the production backend for D7, which orchestrates Anthropic Claude and OpenAI models to generate structured enterprise risk reports.",
+        "Developed D7's quality-control automation as configurable workflows that validate generated due diligence reports.",
+        "Designed a structural compliance platform using LangChain for document retrieval, and partnered with the data engineering team on Apache Airflow orchestration for enterprise AI data pipelines."
+      ],
+      "stack": ["Python", "FastAPI", "PostgreSQL", "Claude", "OpenAI", "LangChain", "Airflow"]
+    },
+    {
+      "company": "Alchemyte Data Solutions",
+      "title": "Data Science Engineer Intern",
+      "location": "Ahmedabad, India",
+      "start": "2025-01",
+      "end": "2025-06",
+      "endLabel": "Jun 2025",
+      "summary": "Natural-language-to-SQL fraud detection assistant over procurement data.",
+      "points": [
+        "Built an LLM-powered fraud detection assistant with Python, SQL and Vanna AI.",
+        "Owned the prompt engineering layer, using GPT-4 for natural-language-to-SQL generation over PostgreSQL-backed procurement schemas.",
+        "Improved query reliability and accuracy for audit and compliance teams."
+      ],
+      "stack": ["Python", "SQL", "Vanna AI", "GPT-4", "PostgreSQL"]
+    }
+  ],
+
+  "work": [
+    {
+      "id": "d7",
+      "name": "D7",
+      "subtitle": "AI-powered third-party due diligence",
+      "context": "FortifAI · production",
+      "proprietary": true,
+      "blurb": "A platform that turns structured analytical data into dimension-specific narratives, risk scores and full enterprise risk reports. I own the backend.",
+      "points": [
+        "Transforms structured analytical data into narratives, risk scores and enterprise risk reports using LLMs.",
+        "LLM inference optimized through JSON chunking, context engineering, prompt optimization and API response caching, cutting token consumption while holding output quality.",
+        "An automated QC framework audits generated reports in real time, checking that every narrative, number and risk score is grounded in the source data."
+      ],
+      "stack": ["Python", "FastAPI", "PostgreSQL", "Claude", "OpenAI"],
+      "note": "Commercial product. Architecture and code are not public."
+    },
+    {
+      "id": "compliance",
+      "name": "Enterprise AI Compliance Assistant",
+      "subtitle": "Document retrieval and structured reporting",
+      "context": "FortifAI · internal",
+      "proprietary": true,
+      "blurb": "A compliance platform for enterprise document retrieval, risk analysis and structured report generation.",
+      "points": [
+        "Architected around LangChain for orchestration, with LangGraph evaluated for multi-step agent flows.",
+        "Handles enterprise document retrieval, risk analysis and structured compliance report generation."
+      ],
+      "stack": ["Python", "FastAPI", "OpenAI", "LangChain", "PostgreSQL"],
+      "note": "Internal platform. Architecture and code are not public."
+    },
+    {
+      "id": "nl2sql",
+      "name": "Fraud Detection Assistant",
+      "subtitle": "Natural language to SQL over procurement data",
+      "context": "Alchemyte · shipped",
+      "proprietary": true,
+      "blurb": "Audit and compliance teams ask questions in English; the assistant writes and runs the SQL against procurement schemas.",
+      "points": [
+        "Built with Python, SQL and Vanna AI, with GPT-4 driving natural-language-to-SQL generation.",
+        "I owned the prompt engineering layer, which is where most of the reliability came from.",
+        "Improved query reliability and accuracy for audit and compliance workflows."
+      ],
+      "stack": ["Python", "SQL", "Vanna AI", "GPT-4", "PostgreSQL"],
+      "note": "Client work. Code is not public."
+    },
+    {
+      "id": "this-site",
+      "name": "This site's assistant",
+      "subtitle": "The one thing here you can actually poke at",
+      "context": "Personal · open source",
+      "proprietary": false,
+      "blurb": "A grounded question-answering assistant over my own profile. Deliberately not a RAG system, and the reasoning for that is on the page.",
+      "points": [
+        "Full-context injection rather than retrieval: the entire profile is roughly 1,200 tokens, so chunking and re-ranking would add latency and failure modes to solve a problem that doesn't exist at this size.",
+        "Grounding is enforced with structured output. The model returns a JSON object with a grounded flag and a refusal reason, and the UI branches on the flag rather than string-matching a sentence.",
+        "Answers are cached by normalized question and rate-limited per visitor, because a portfolio assistant gets asked the same fifteen questions forever.",
+        "Regression-tested against a fixed question set covering grounding, refusals and confidentiality before every deploy."
+      ],
+      "stack": ["TypeScript", "React", "Three.js", "Vercel Functions", "Groq"],
+      "note": "UPDATE: add the repo link once the repo is public."
+    }
+  ],
+
+  "skills": [
+    { "group": "Languages", "items": ["Python", "SQL", "TypeScript"] },
+    { "group": "Generative AI", "items": ["LLMs", "Prompt engineering", "Context engineering", "AI agents", "RAG"] },
+    { "group": "Frameworks", "items": ["LangChain", "LangGraph", "CrewAI", "Vanna AI", "Flowise", "MCP"] },
+    { "group": "LLMOps", "items": ["Prompt versioning", "Token & cost optimization", "LLM evaluation", "Caching", "Latency optimization"] },
+    { "group": "Model platforms", "items": ["Anthropic Claude", "OpenAI GPT", "Google Gemini", "xAI Grok", "Moonshot Kimi", "Zhipu GLM"] },
+    { "group": "Backend & data", "items": ["FastAPI", "Flask", "REST", "Pydantic", "Vector databases", "PostgreSQL", "MySQL", "NoSQL"] },
+    { "group": "Cloud & DevOps", "items": ["Azure", "Docker", "Apache Airflow", "Git", "GitHub"] }
+  ],
+
+  "publications": [
+    {
+      "title": "Forecasting Maximum Temperature Trends with SARIMAX: A Case Study from Ahmedabad, India",
+      "venue": "MDPI",
+      "kind": "Journal",
+      "url": "UPDATE: paste the DOI or article link"
+    },
+    {
+      "title": "Ciphering the Modern World: A Comprehensive Analysis of DES, AES, RSA, and DHKE",
+      "venue": "IEEE",
+      "kind": "Conference",
+      "url": "UPDATE: paste the IEEE Xplore link"
+    },
+    {
+      "title": "Mastering Data Analysis and Data Visualization with Time Series Techniques in Python",
+      "venue": "Medium",
+      "kind": "Article",
+      "url": "UPDATE: paste the Medium link"
+    }
+  ],
+
+  "education": {
+    "school": "Pandit Deendayal Energy University",
+    "degree": "B.Tech, Computer Engineering",
+    "location": "Gandhinagar, India",
+    "years": "2021 – 2025",
+    "detail": "CGPA 8.67 / 10"
+  },
+
+  "assistant": {
+    "suggestions": [
+      "What does Nishil work on?",
+      "What has he built with LLMs?",
+      "Which frameworks does he use?",
+      "Is he open to new roles?"
+    ],
+    "confidentialityRule": "D7 and the FortifAI compliance platform are commercial products. Nothing beyond what is written on this site may be disclosed about their internals.",
+    "refusalMessage": "I only answer questions about Nishil's work and background. Ask me about his experience, projects or stack."
+  }
+}
