@@ -1,5 +1,88 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useScene } from "./store";
+
+/* Characters used for the "unresolved embedding" noise state — mixed
+   case letters, digits and a few symbols so it reads as vector noise
+   rather than a plain word scramble. */
+const SCRAMBLE_CHARS = "01#$%&ABCDEFGHIJKLMNOPQRSTUVWXYZ01001010+~";
+
+function randomChar() {
+  return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+}
+
+function scrambleOf(text: string) {
+  return text
+    .split("")
+    .map((ch) => (ch === " " ? " " : randomChar()))
+    .join("");
+}
+
+/**
+ * Renders `text` as resolving vector noise. Idle, it drifts through
+ * random characters (an unresolved embedding). Once `active` becomes
+ * true it decodes left to right, character by character, over exactly
+ * `totalMs`, and then holds the final text permanently — a query
+ * resolving against the field, not a toggle.
+ */
+export function useScramble(text: string, active: boolean, totalMs = 900) {
+  const [display, setDisplay] = useState(() => scrambleOf(text));
+  const decodedRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
+  const idleRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (decodedRef.current) return;
+
+    if (!active) {
+      idleRef.current = window.setInterval(() => setDisplay(scrambleOf(text)), 130);
+      return () => {
+        if (idleRef.current) clearInterval(idleRef.current);
+      };
+    }
+
+    if (idleRef.current) clearInterval(idleRef.current);
+
+    const start = performance.now();
+    const len = Math.max(text.length, 1);
+
+    const frame = (now: number) => {
+      const elapsed = now - start;
+      let allDone = true;
+      const next = text
+        .split("")
+        .map((ch, i) => {
+          if (ch === " ") return " ";
+          const finalizeAt = ((i + 1) / len) * totalMs;
+          if (elapsed >= finalizeAt) return ch;
+          allDone = false;
+          return randomChar();
+        })
+        .join("");
+      setDisplay(next);
+      if (!allDone) {
+        rafRef.current = requestAnimationFrame(frame);
+      } else {
+        decodedRef.current = true;
+        setDisplay(text);
+      }
+    };
+    rafRef.current = requestAnimationFrame(frame);
+
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [active, text, totalMs]);
+
+  return display;
+}
+
+/** Trigger-once boolean for hover/focus/tap — decoding is a discovery,
+    not a toggle, so it never reverts once fired. */
+export function useDecodeTrigger() {
+  const [active, setActive] = useState(false);
+  const trigger = useCallback(() => setActive(true), []);
+  return { active, trigger };
+}
 
 /** Fade-and-lift on first entry. Runs once per element. */
 export function useReveal<T extends HTMLElement>() {

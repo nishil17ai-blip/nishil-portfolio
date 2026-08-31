@@ -29,11 +29,11 @@ export function Experience() {
             <div className="role-company">
               {job.company} · {job.location}
             </div>
-            <ul>
-              {job.points.map((point) => (
-                <li key={point}>{point}</li>
+            <div className="role-body">
+              {job.paragraphs.map((para) => (
+                <p key={para}>{para}</p>
               ))}
-            </ul>
+            </div>
             <div className="chips">
               {job.stack.map((tech) => (
                 <span className="chip" key={tech}>

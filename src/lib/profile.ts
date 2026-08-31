@@ -8,7 +8,7 @@ export interface Job {
   end: string | null;
   endLabel: string;
   summary: string;
-  points: string[];
+  paragraphs: string[];
   stack: string[];
 }
 

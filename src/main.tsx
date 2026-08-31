@@ -6,6 +6,7 @@ import App from "./App";
 import "@fontsource-variable/bricolage-grotesque";
 import "@fontsource-variable/public-sans";
 import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/playfair-display";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(

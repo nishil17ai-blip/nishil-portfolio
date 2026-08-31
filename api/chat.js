@@ -5,7 +5,7 @@ import profile from "../content/profile.json" with { type: "json" };
  * GROQ_API_KEY is the only required secret.
  * ------------------------------------------------------------------ */
 const ENDPOINT = process.env.LLM_ENDPOINT || "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = process.env.LLM_MODEL || "llama-3.3-70b-versatile";
+const MODEL = process.env.LLM_MODEL || "openai/gpt-oss-20b";
 const API_KEY = process.env.GROQ_API_KEY;
 
 const MAX_QUESTION_CHARS = 400;

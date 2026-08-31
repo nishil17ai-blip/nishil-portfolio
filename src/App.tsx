@@ -12,10 +12,18 @@ import { useActiveSection, useScrollProgress } from "./lib/hooks";
 
 const SECTIONS = ["top", "work", "experience", "skills", "writing", "contact"];
 
+const NIEL_GREETING = "Hi, I am NI-EL, NIshil patEL's AI Assistant";
+
 export default function App() {
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatGreeting, setChatGreeting] = useState<string | null>(null);
   useScrollProgress();
   const active = useActiveSection(SECTIONS);
+
+  function handleAskAssistant(opts?: { greeting?: string }) {
+    setChatGreeting(opts?.greeting ?? NIEL_GREETING);
+    setChatOpen(true);
+  }
 
   return (
     <>
@@ -26,7 +34,7 @@ export default function App() {
       <Nav active={active} />
 
       <main className="shell">
-        <Hero onAskAssistant={() => setChatOpen(true)} />
+        <Hero onAskAssistant={handleAskAssistant} />
         <Work />
         <Experience />
         <Skills />
@@ -34,7 +42,11 @@ export default function App() {
         <Footer />
       </main>
 
-      <Chat open={chatOpen} setOpen={setChatOpen} />
+      <Chat
+        open={chatOpen}
+        setOpen={setChatOpen}
+        initialGreeting={chatGreeting}
+      />
     </>
   );
 }
