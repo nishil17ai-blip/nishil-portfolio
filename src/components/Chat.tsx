@@ -10,23 +10,46 @@ interface Message {
   meta?: string;
 }
 
-const GREETING: Message = {
+const DEFAULT_GREETING: Message = {
   role: "assistant",
   body: "Ask me anything about Nishil's work, stack or background. I only know what's on this page, and I'll say so when a question is outside that.",
   grounded: true,
 };
 
-export function Chat({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
-  const [messages, setMessages] = useState<Message[]>([GREETING]);
+export function Chat({
+  open,
+  setOpen,
+  initialGreeting = null,
+}: {
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  initialGreeting?: string | null;
+}) {
+  const [messages, setMessages] = useState<Message[]>([DEFAULT_GREETING]);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
   const setActivity = useScene((s) => s.setActivity);
-  // The hero already has an "Ask about my work" button; two of them on
-  // screen at once is just noise. Selector returns a boolean, so this
-  // re-renders on the crossing, not on every scroll frame.
   const overHero = useScene((s) => s.progress < 0.06);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const seededRef = useRef(false);
+
+  // When panel opens with a greeting from Hero, seed NI-EL intro as first message
+  useEffect(() => {
+    if (open && initialGreeting && !seededRef.current) {
+      setMessages([
+        {
+          role: "assistant",
+          body: initialGreeting,
+          grounded: true,
+        },
+      ]);
+      seededRef.current = true;
+    }
+    if (!open) {
+      seededRef.current = false;
+    }
+  }, [open, initialGreeting]);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -104,7 +127,7 @@ export function Chat({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
         onClick={() => setOpen(true)}
       >
         <span className="pulse" />
-        Ask about my work
+        Ask NI-EL about me.
       </button>
     );
   }
@@ -112,9 +135,9 @@ export function Chat({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
   const showSuggestions = messages.length === 1;
 
   return (
-    <div className="chat-panel" role="dialog" aria-label="Ask about Nishil's work">
+    <div className="chat-panel" role="dialog" aria-label="Ask NI-EL about Nishil's work">
       <div className="chat-head">
-        <span>Grounded assistant · answers only from this page</span>
+        <span>NI-EL · answers only from this page</span>
         <button onClick={() => setOpen(false)} aria-label="Close assistant">
           ✕
         </button>
@@ -129,7 +152,7 @@ export function Chat({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
             data-grounded={m.grounded === false ? "false" : "true"}
             data-error={m.error ? "true" : "false"}
           >
-            <span className="msg-role">{m.role === "user" ? "You" : "Assistant"}</span>
+            <span className="msg-role">{m.role === "user" ? "You" : "NI-EL"}</span>
             <div className="msg-body">{m.body}</div>
             {m.meta && <div className="msg-meta">{m.meta}</div>}
           </div>
@@ -137,7 +160,7 @@ export function Chat({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
 
         {pending && (
           <div className="msg">
-            <span className="msg-role">Assistant</span>
+            <span className="msg-role">NI-EL</span>
             <span className="thinking">
               <i />
               <i />

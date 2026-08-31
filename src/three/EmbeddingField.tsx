@@ -55,9 +55,9 @@ const vertexShader = /* glsl */ `
 
     vec3 base = mix(position, aTarget, uMorph);
 
-    // Amplitude falls as points settle, so the cluster state reads as
-    // resolved rather than jittery.
-    float amp = mix(0.55, 0.14, uMorph) + uEnergy * 0.25 * focused;
+    // Amplitude falls as points settle, but never all the way — the
+    // field keeps flowing gently instead of freezing into a static clump.
+    float amp = mix(0.55, 0.32, uMorph) + uEnergy * 0.25 * focused;
     base += drift(aSeed, uTime) * amp;
 
     // The focused cluster leans very slightly toward the camera.
@@ -141,18 +141,26 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
     }
 
     for (let i = 0; i < count; i++) {
-      // Diffuse start: uniform inside a sphere.
+      // Diffuse start: uniform inside a sphere, stretched wide on x/z so
+      // the unresolved field reaches the screen edges at hero distance.
+      // Only this diffuse state is widened — the clustered targets below
+      // are untouched, so the morphed/scrolled sections look exactly as
+      // they did before.
       const r = 9 * Math.cbrt(Math.random());
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      const spreadX = 2.05;
+      const spreadZ = 1.35;
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta) * spreadX;
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.65;
-      positions[i * 3 + 2] = r * Math.cos(phi);
+      positions[i * 3 + 2] = r * Math.cos(phi) * spreadZ;
 
-      // Clustered end: tight gaussian-ish blob around a centre.
+      // Clustered end: a loose, open gather around a centre — wide enough
+      // that it never reads as a solid blob sitting on top of text, and
+      // it keeps drifting rather than settling completely (see amp below).
       const c = i % CLUSTERS;
       const centre = centres[c];
-      const spread = 1.5;
+      const spread = 3.4;
       targets[i * 3] = centre.x + (Math.random() - 0.5) * spread * 2;
       targets[i * 3 + 1] = centre.y + (Math.random() - 0.5) * spread * 2;
       targets[i * 3 + 2] = centre.z + (Math.random() - 0.5) * spread * 2;
@@ -166,7 +174,7 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
     geo.setAttribute("aTarget", new BufferAttribute(targets, 3));
     geo.setAttribute("aCluster", new BufferAttribute(clusters, 1));
     geo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
-    geo.boundingSphere = new Sphere(new Vector3(), 20);
+    geo.boundingSphere = new Sphere(new Vector3(), 26);
     return geo;
   }, [count]);
 

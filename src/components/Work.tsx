@@ -62,13 +62,7 @@ export function Work() {
               </div>
               <div className="work-sub">{item.subtitle}</div>
 
-              <p>{item.blurb}</p>
-
-              <ul>
-                {item.points.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
+              <p className="work-blurb">{item.blurb}</p>
 
               <div className="chips">
                 {item.stack.map((tech) => (
@@ -78,7 +72,6 @@ export function Work() {
                 ))}
               </div>
 
-              {item.proprietary && <div className="closed-note">{item.note}</div>}
             </article>
           ))}
         </div>
