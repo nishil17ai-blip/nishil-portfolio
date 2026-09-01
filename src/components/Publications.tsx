@@ -7,7 +7,7 @@ export function Publications() {
       <SectionLabel text="Writing" count={`${profile.publications.length} pieces`} />
       <h2>Published work</h2>
       <p>
-        Two peer-reviewed papers and one long-form tutorial, from before I moved into AI
+        Two research papers and one long-form tutorial, from before I moved into AI
         engineering full time.
       </p>
 

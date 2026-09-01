@@ -6,7 +6,7 @@ const Scene = lazy(() => import("./Scene").then((m) => ({ default: m.Scene })));
 /**
  * three.js is by far the heaviest thing on this page, and none of it is
  * needed to read the text. So: paint the gradient fallback immediately,
- * then pull the scene in after the browser is idle — and never pull it
+ * then pull the scene in after the browser is idle - and never pull it
  * in at all on machines that can't render it well.
  */
 export function LazyScene() {

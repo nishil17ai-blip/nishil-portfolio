@@ -6,10 +6,14 @@ import profile from "../content/profile.json" with { type: "json" };
  * ------------------------------------------------------------------ */
 const ENDPOINT = process.env.LLM_ENDPOINT || "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = process.env.LLM_MODEL || "openai/gpt-oss-20b";
+// Tried second if the primary model errors, rate-limits, or returns
+// nothing usable - kept as an env var since Groq's exact model slugs
+// shift over time and this shouldn't need a code change to update.
+const FALLBACK_MODEL = process.env.LLM_FALLBACK_MODEL || "qwen/qwen3-32b";
 const API_KEY = process.env.GROQ_API_KEY;
 
 const MAX_QUESTION_CHARS = 400;
-const RATE_LIMIT = { windowMs: 60_000, max: 12 };
+const RATE_LIMIT = { windowMs: 60_000, max: 5 };
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 /* ------------------------------------------------------------------ *
@@ -33,14 +37,14 @@ function buildContext(p) {
   lines.push("EXPERIENCE:");
   for (const job of p.experience) {
     lines.push(`- ${job.title}, ${job.company} (${job.start} to ${job.endLabel}), ${job.location}`);
-    for (const pt of job.points) lines.push(`  * ${pt}`);
+    for (const para of job.paragraphs) lines.push(`  * ${para}`);
     lines.push(`  * Stack: ${job.stack.join(", ")}`);
   }
   lines.push("");
 
   lines.push("PROJECTS:");
   for (const w of p.work) {
-    lines.push(`- ${w.name} — ${w.subtitle} (${w.context})`);
+    lines.push(`- ${w.name} - ${w.subtitle} (${w.context})`);
     for (const pt of w.points) lines.push(`  * ${pt}`);
     lines.push(`  * Stack: ${w.stack.join(", ")}`);
     if (w.proprietary) lines.push(`  * ${w.note}`);
@@ -63,7 +67,7 @@ function buildContext(p) {
 
 const CONTEXT = buildContext(profile);
 
-const SYSTEM_PROMPT = `You answer questions about ${profile.identity.name} for visitors to his portfolio site. You speak about him in the third person, as a knowledgeable colleague would — direct, concrete, no salesmanship.
+const SYSTEM_PROMPT = `You answer questions about ${profile.identity.name} for visitors to his portfolio site. You speak about him in the third person, as a knowledgeable colleague would - direct, concrete, no salesmanship.
 
 The block below is everything you know. It is your only source of truth.
 
@@ -72,10 +76,10 @@ ${CONTEXT}
 </profile>
 
 Rules:
-1. Answer only from the profile block. If a question asks for something not in it — salary expectations, personal life, opinions he has not stated, specific metrics that are not written down — say plainly that it is not something you have, and suggest emailing him.
+1. Answer only from the profile block. If a question asks for something not in it - salary expectations, personal life, opinions he has not stated, specific metrics that are not written down - say plainly that it is not something you have, and suggest emailing him.
 2. Never invent numbers, dates, employers, tools or achievements. Not being able to answer is always better than guessing.
 3. Confidentiality: ${profile.assistant.confidentialityRule} If asked how D7 or the compliance platform works internally, give only what the profile block states and say the rest is not public.
-4. Off-topic questions — general knowledge, coding help, current events, anything not about Nishil — get a short redirect, not an answer. Do not answer them even partially.
+4. Off-topic questions - general knowledge, coding help, current events, anything not about Nishil - get a short redirect, not an answer. Do not answer them even partially.
 5. Two to four sentences. No bullet lists, no headings, no markdown.
 
 Respond with a single JSON object and nothing else:
@@ -155,6 +159,80 @@ function parseModelOutput(raw) {
 
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ *
+ * Model call. Pulled out on its own so the handler can try MODEL
+ * first and, only if that attempt fails outright, retry once against
+ * FALLBACK_MODEL rather than duplicating the fetch/parse logic twice.
+ * Returns { raw, usage } on success and throws CallFailedError on any
+ * failure worth falling back for (bad status, network error, or an
+ * empty completion).
+ * ------------------------------------------------------------------ */
+class CallFailedError extends Error {
+  constructor(message, { status, userMessage } = {}) {
+    super(message);
+    this.status = status;
+    this.userMessage = userMessage;
+  }
+}
+
+async function callGroq(model, question) {
+  let upstream;
+  try {
+    upstream = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        max_tokens: 400,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: question },
+        ],
+      }),
+    });
+  } catch (err) {
+    throw new CallFailedError(`Network error calling ${model}: ${err.message}`, {
+      userMessage: "Something broke on the way to the model. Try again.",
+    });
+  }
+
+  if (!upstream.ok) {
+    const detail = await upstream.text();
+    console.error(`Upstream error (${model})`, upstream.status, detail.slice(0, 500));
+    const userMessage =
+      upstream.status === 429
+        ? "The assistant is over its rate limit right now. Try again shortly."
+        : "The assistant could not reach the model. Try again in a moment.";
+    throw new CallFailedError(`Upstream ${upstream.status} from ${model}`, {
+      status: upstream.status,
+      userMessage,
+    });
+  }
+
+  const data = await upstream.json();
+  const raw = data?.choices?.[0]?.message?.content ?? "";
+  if (!raw) {
+    throw new CallFailedError(`Empty completion from ${model}`, {
+      userMessage: "The model returned nothing. Try rephrasing.",
+    });
+  }
+
+  return {
+    raw,
+    usage: {
+      promptTokens: data?.usage?.prompt_tokens ?? null,
+      completionTokens: data?.usage?.completion_tokens ?? null,
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ */
+
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") {
@@ -200,45 +278,28 @@ export default async function handler(req, res) {
   const startedAt = Date.now();
 
   try {
-    const upstream = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        temperature: 0.2,
-        max_tokens: 400,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: question },
-        ],
-      }),
-    });
-
-    if (!upstream.ok) {
-      const detail = await upstream.text();
-      console.error("Upstream error", upstream.status, detail.slice(0, 500));
-      const message =
-        upstream.status === 429
-          ? "The assistant is over its rate limit right now. Try again shortly."
-          : "The assistant could not reach the model. Try again in a moment.";
-      return res.status(502).json({ error: message });
+    let result;
+    let usedModel = MODEL;
+    try {
+      result = await callGroq(MODEL, question);
+    } catch (primaryErr) {
+      console.warn(
+        `Primary model (${MODEL}) failed, falling back to ${FALLBACK_MODEL}:`,
+        primaryErr.message,
+      );
+      try {
+        result = await callGroq(FALLBACK_MODEL, question);
+        usedModel = FALLBACK_MODEL;
+      } catch (fallbackErr) {
+        console.error(`Fallback model (${FALLBACK_MODEL}) also failed:`, fallbackErr.message);
+        const status = fallbackErr.status ?? primaryErr.status ?? 502;
+        return res.status(status).json({ error: fallbackErr.userMessage ?? primaryErr.userMessage });
+      }
     }
 
-    const data = await upstream.json();
-    const raw = data?.choices?.[0]?.message?.content ?? "";
-    if (!raw) {
-      return res.status(502).json({ error: "The model returned nothing. Try rephrasing." });
-    }
-
-    const payload = parseModelOutput(raw);
-    payload.usage = {
-      promptTokens: data?.usage?.prompt_tokens ?? null,
-      completionTokens: data?.usage?.completion_tokens ?? null,
-    };
+    const payload = parseModelOutput(result.raw);
+    payload.usage = result.usage;
+    payload.model = usedModel;
 
     cache.set(key, { payload, expiresAt: Date.now() + CACHE_TTL_MS });
 

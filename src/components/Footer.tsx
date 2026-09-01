@@ -57,14 +57,21 @@ export function Footer() {
     e.preventDefault();
     const subject = "Let's talk about what you're building";
     const bodyLines = [
-      note || "Hey Nishil — here's what I'm building:",
+      note || "Hey Nishil - here's what I'm building:",
       "",
       `My email: ${email}`,
       linkedin ? `LinkedIn: ${linkedin}` : null,
     ].filter(Boolean);
-    const mailto = `mailto:${identity.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
-    window.location.href = mailto;
+    // mailto: silently does nothing on a visitor's machine unless they
+    // have a default mail app configured - which is common enough that
+    // the button looked like it worked while actually sending nothing.
+    // Gmail's compose URL opens in a real tab every time, pre-filled.
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+      identity.email
+    )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
+    window.open(gmailUrl, "_blank", "noreferrer");
     setSent(true);
+    window.setTimeout(() => setSent(false), 4000);
   };
 
   const handleSocialEnter = (l: (typeof socials)[number]) => () => {
@@ -81,8 +88,7 @@ export function Footer() {
         <div className="footer-lead">
           <h2>Let's talk about what you're building.</h2>
           <p>
-            I'm most useful on teams putting LLMs in front of real users, where getting the
-            answer right matters more than getting it fast.
+          Reach out by filling below form if the question keeping you up isn't 'does it work' but 'what happens when it doesn't....
           </p>
 
           <form className="contact-form" onSubmit={submit}>
@@ -118,7 +124,7 @@ export function Footer() {
               />
             </div>
             <button className="btn btn-solid contact-submit" type="submit">
-              {sent ? "Opening your email client…" : "Let's talk →"}
+              {sent ? "Opened in Gmail - check the new tab ↗" : "Let's talk →"}
             </button>
           </form>
         </div>
@@ -168,7 +174,6 @@ export function Footer() {
       </div>
 
       <div className="colophon">
-        <span>Bricolage Grotesque · Public Sans · JetBrains Mono</span>
         <span>Points in the background are a morphing embedding field, not decoration</span>
         <span>© {new Date().getFullYear()} {identity.name}</span>
       </div>
