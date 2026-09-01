@@ -1,6 +1,6 @@
 /**
  * Runs api/chat.js as a plain Node HTTP server, so `npm run dev` works
- * end-to-end without the Vercel CLI. Vercel itself never runs this file —
+ * end-to-end without the Vercel CLI. Vercel itself never runs this file -
  * in production, Vercel calls the same handler directly. This exists
  * purely to give Vite's dev server (localhost:5173) something at
  * localhost:8787 to proxy /api/* to.
@@ -12,28 +12,38 @@
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 
-// Load .env.local by hand — no extra dependency for one line.
+// Load .env.local by hand - no extra dependency for one line.
 // This has to run, and process.env has to be populated, BEFORE
 // api/chat.js is imported: that module reads GROQ_API_KEY at the top
 // level, once, the moment it's loaded. A static `import` at the top of
 // this file would hoist above this block and always lose the race, so
 // the load happens here and api/chat.js is imported dynamically below.
 try {
-  const envText = readFileSync(new URL("./.env.local", import.meta.url), "utf8");
-  for (const line of envText.split("\n")) {
+  let envText = readFileSync(new URL("./.env.local", import.meta.url), "utf8");
+
+  // Strip a UTF-8 byte-order-mark if present. Windows editors (Notepad
+  // especially) commonly save .env files with a leading BOM, which is
+  // invisible but not a \w character - it silently breaks the match on
+  // whatever line comes first in the file, with no error and no warning,
+  // which is exactly the "loaded: NO" symptom with no earlier warning.
+  if (envText.charCodeAt(0) === 0xfeff) envText = envText.slice(1);
+
+  for (const rawLine of envText.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
     const match = line.match(/^([\w.-]+)\s*=\s*(.*)$/);
     if (match && !process.env[match[1]]) {
       process.env[match[1]] = match[2].replace(/^["']|["']$/g, "").trim();
     }
   }
 } catch {
-  console.warn("No .env.local found — make sure GROQ_API_KEY is set another way.");
+  console.warn("No .env.local found - make sure GROQ_API_KEY is set another way.");
 }
 
-// Temporary diagnostic — safe to leave in, never prints the actual key.
+// Temporary diagnostic - safe to leave in, never prints the actual key.
 console.log(
   "GROQ_API_KEY loaded:",
-  process.env.GROQ_API_KEY ? `yes (${process.env.GROQ_API_KEY.length} chars)` : "NO — not found",
+  process.env.GROQ_API_KEY ? `yes (${process.env.GROQ_API_KEY.length} chars)` : "NO - not found",
 );
 
 const { default: handler } = await import("./api/chat.js");

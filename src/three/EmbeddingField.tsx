@@ -14,10 +14,15 @@ import { useScene } from "../lib/store";
 
 /**
  * A field of points that starts as an undifferentiated cloud and
- * condenses into labelled clusters as you scroll — the shape of an
- * embedding space going from raw to organised. When the assistant is
- * working, one cluster ignites and the rest dim, which is roughly what
- * a retrieval step looks like if you could see it.
+ * condenses into labelled clusters as you scroll - the shape of an
+ * embedding space going from raw to organised. A minority of points,
+ * chosen at random rather than by cluster or side, are "warm": as the
+ * field organises they slide in from the right and settle into amber,
+ * scattered freely among the cool blue majority - so the resting state
+ * after a scroll is a loose, organic mix rather than a clean split.
+ * When the assistant is working, one cluster additionally ignites and
+ * the rest dim, which is roughly what a retrieval step looks like if
+ * you could see it.
  *
  * Everything is one draw call: positions, cluster targets and per-point
  * seeds are baked into attributes, and the morph happens in the vertex
@@ -37,8 +42,10 @@ const vertexShader = /* glsl */ `
   attribute vec3 aTarget;
   attribute float aCluster;
   attribute float aSeed;
+  attribute float aWarm;
 
   varying float vCluster;
+  varying float vWarm;
   varying float vFade;
 
   // Cheap hash-based drift. Deterministic, no texture lookup.
@@ -55,7 +62,12 @@ const vertexShader = /* glsl */ `
 
     vec3 base = mix(position, aTarget, uMorph);
 
-    // Amplitude falls as points settle, but never all the way — the
+    // Warm-side points start further right and slide into their cluster
+    // as the field organises - new nodes arriving from the right as you
+    // scroll into the embedding space. Fully resolved by uMorph == 1.
+    base.x += (1.0 - uMorph) * aWarm * 6.5;
+
+    // Amplitude falls as points settle, but never all the way - the
     // field keeps flowing gently instead of freezing into a static clump.
     float amp = mix(0.55, 0.32, uMorph) + uEnergy * 0.25 * focused;
     base += drift(aSeed, uTime) * amp;
@@ -71,6 +83,7 @@ const vertexShader = /* glsl */ `
     gl_PointSize *= 1.0 + focused * uEnergy * 0.8;
 
     vCluster = aCluster;
+    vWarm = aWarm;
     // Depth fade keeps the far side of the cloud from muddying the type.
     vFade = smoothstep(34.0, 5.0, dist);
   }
@@ -81,8 +94,10 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uWarm;
   uniform float uFocus;
   uniform float uEnergy;
+  uniform float uMorph;
 
   varying float vCluster;
+  varying float vWarm;
   varying float vFade;
 
   void main() {
@@ -93,11 +108,18 @@ const fragmentShader = /* glsl */ `
     float alpha = smoothstep(0.5, 0.08, d);
 
     float focused = step(0.5, 1.0 - abs(vCluster - uFocus));
-    float warmth = focused * smoothstep(0.1, 0.85, uEnergy);
+    float focusedWarmth = focused * smoothstep(0.1, 0.85, uEnergy);
+
+    // Structural warmth: points on the warm side of the field carry
+    // amber once things have organised, so the resting state after a
+    // scroll is a steady mix of both colours, not a flat blue field.
+    float structuralWarmth = vWarm * smoothstep(0.12, 0.75, uMorph);
+
+    float warmth = max(structuralWarmth, focusedWarmth);
 
     // uCool's blue channel is already near 1.0, so a plain mix(cool, warm)
     // spends its middle range with red rising, blue still pinned high and
-    // green lagging behind both — which reads as muddy magenta, not a
+    // green lagging behind both - which reads as muddy magenta, not a
     // clean blue-to-amber transition. Carve out exactly that trough.
     vec3 color = mix(uCool, uWarm, warmth);
     float trough = 4.0 * warmth * (1.0 - warmth);
@@ -125,25 +147,30 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
     const targets = new Float32Array(count * 3);
     const clusters = new Float32Array(count);
     const seeds = new Float32Array(count);
+    const warms = new Float32Array(count);
 
     // Cluster centres on a wide ring, tilted so it reads as a volume
-    // rather than a flat dial.
+    // rather than a flat dial. Warmth itself is NOT tied to cluster or
+    // side of the field - it's assigned per point, at random, so the
+    // settled mix looks like it found its own way there rather than
+    // being split down the middle. Kept a clear minority against the
+    // cool points, same as the rest of the site's amber accent.
+    const WARM_SHARE = 0.32;
     const centres: Vector3[] = [];
     for (let c = 0; c < CLUSTERS; c++) {
       const angle = (c / CLUSTERS) * Math.PI * 2;
-      centres.push(
-        new Vector3(
-          Math.cos(angle) * 7.5,
-          Math.sin(angle) * 3.4,
-          Math.sin(angle * 1.7) * 3.6,
-        ),
+      const centre = new Vector3(
+        Math.cos(angle) * 7.5,
+        Math.sin(angle) * 3.4,
+        Math.sin(angle * 1.7) * 3.6,
       );
+      centres.push(centre);
     }
 
     for (let i = 0; i < count; i++) {
       // Diffuse start: uniform inside a sphere, stretched wide on x/z so
       // the unresolved field reaches the screen edges at hero distance.
-      // Only this diffuse state is widened — the clustered targets below
+      // Only this diffuse state is widened - the clustered targets below
       // are untouched, so the morphed/scrolled sections look exactly as
       // they did before.
       const r = 9 * Math.cbrt(Math.random());
@@ -155,7 +182,7 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.65;
       positions[i * 3 + 2] = r * Math.cos(phi) * spreadZ;
 
-      // Clustered end: a loose, open gather around a centre — wide enough
+      // Clustered end: a loose, open gather around a centre - wide enough
       // that it never reads as a solid blob sitting on top of text, and
       // it keeps drifting rather than settling completely (see amp below).
       const c = i % CLUSTERS;
@@ -167,6 +194,7 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
 
       clusters[i] = c;
       seeds[i] = Math.random() * 100;
+      warms[i] = Math.random() < WARM_SHARE ? 1 : 0;
     }
 
     const geo = new BufferGeometry();
@@ -174,6 +202,7 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
     geo.setAttribute("aTarget", new BufferAttribute(targets, 3));
     geo.setAttribute("aCluster", new BufferAttribute(clusters, 1));
     geo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
+    geo.setAttribute("aWarm", new BufferAttribute(warms, 1));
     geo.boundingSphere = new Sphere(new Vector3(), 26);
     return geo;
   }, [count]);

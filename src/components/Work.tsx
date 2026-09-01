@@ -25,7 +25,7 @@ export function Work() {
       <SectionLabel text="Work" count={`${profile.work.length} systems`} />
       <h2>Things I've shipped</h2>
       <p>
-        Most of this is commercial work, so there are no repository links here — a closed padlock
+        Most of this is commercial work, so there are no repository links here - a closed padlock
         is more honest than a dead button. The last one is open, and it's answering questions in
         the corner of this page right now.
       </p>

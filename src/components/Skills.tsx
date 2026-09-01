@@ -132,18 +132,30 @@ export function Skills() {
       <SectionLabel text="Stack" count={`${total} tools`} />
       <h2>What I reach for</h2>
       <p>
-        Mapped like the schema it kind of is — Nishil at the center, each group an entity, every
-        tool an attribute. Search or hover to trace the connections.
+        Mapped like the schema it kind of is, connecting every skill at the center node.
+        Search or hover to trace the connections.
       </p>
 
       <div className="erd-controls">
-        <input
-          type="text"
-          className="erd-search"
-          placeholder="Search a skill…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <div className="erd-search-wrap">
+          <input
+            type="text"
+            className="erd-search"
+            placeholder="Search a skill…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
+            <button
+              type="button"
+              className="erd-search-clear"
+              onClick={() => setQuery("")}
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
         {q && (
           <span className="erd-count">
             {matchCount} match{matchCount === 1 ? "" : "es"}
@@ -166,7 +178,7 @@ export function Skills() {
             <text x={cx} y={cy - 6} className="erd-center-name">
               Nishil
             </text>
-            <text x={cx} y={cy + 16} className="erd-center-sub">
+            <text x={cx} y={cy + 16} className="erd-center-name">
               Patel
             </text>
           </g>

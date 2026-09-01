@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useScene } from "./store";
 
-/* Characters used for the "unresolved embedding" noise state — mixed
+/* Characters used for the "unresolved embedding" noise state - mixed
    case letters, digits and a few symbols so it reads as vector noise
    rather than a plain word scramble. */
 const SCRAMBLE_CHARS = "01#$%&ABCDEFGHIJKLMNOPQRSTUVWXYZ01001010+~";
@@ -21,7 +21,7 @@ function scrambleOf(text: string) {
  * Renders `text` as resolving vector noise. Idle, it drifts through
  * random characters (an unresolved embedding). Once `active` becomes
  * true it decodes left to right, character by character, over exactly
- * `totalMs`, and then holds the final text permanently — a query
+ * `totalMs`, and then holds the final text permanently - a query
  * resolving against the field, not a toggle.
  */
 export function useScramble(text: string, active: boolean, totalMs = 900) {
@@ -76,7 +76,7 @@ export function useScramble(text: string, active: boolean, totalMs = 900) {
   return display;
 }
 
-/** Trigger-once boolean for hover/focus/tap — decoding is a discovery,
+/** Trigger-once boolean for hover/focus/tap - decoding is a discovery,
     not a toggle, so it never reverts once fired. */
 export function useDecodeTrigger() {
   const [active, setActive] = useState(false);

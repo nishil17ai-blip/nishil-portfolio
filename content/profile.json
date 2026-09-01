@@ -9,17 +9,17 @@
       "github": "https://github.com/nishil17ai-blip",
       "resume": "/Nishil_Patel_Resume.pdf"
     },
-    "phone": "UPDATE: omitted from the public site on purpose — it stays on the PDF only"
+    "phone": "UPDATE: omitted from the public site on purpose - it stays on the PDF only"
   },
   "hero": {
     "line1": "I build LLM systems",
     "line2": "that hold up in production.",
-    "standfirst": "AI Engineer at FortifAI, working on an enterprise due diligence platform that orchestrates Claude and OpenAI models into structured risk reports. I spend most of my time on the unglamorous half: retrieval that returns the right chunk, pipelines that fail loudly, and token budgets that don't quietly triple.",
+    "standfirst": "AI Engineer at Fortifai Inc, working on an enterprise due diligence platform that orchestrates Claude and OpenAI models into structured risk reports. I spend most of my time on the unglamorous half: retrieval that returns the right chunk, pipelines that fail loudly, and token budgets that don't quietly triple.",
     "status": "Open to conversations about AI engineering roles."
   },
   "experience": [
     {
-      "company": "FortifAI Inc.",
+      "company": "Fortifai Inc.",
       "title": "AI Engineer",
       "location": "Ahmedabad, India",
       "start": "2025-07",
@@ -63,10 +63,29 @@
   ],
   "work": [
     {
+      "id": "d7",
+      "name": "D7",
+      "subtitle": "AI-powered third-party due diligence",
+      "proprietary": true,
+      "blurb": "A platform that turns structured analytical data into dimension-specific narratives, risk scores and full enterprise risk reports. LLM inference is optimized through JSON chunking, context engineering and response caching and an automated QC framework grounds every narrative, number and risk score against the source data in real time. I own the backend end to end.",
+      "points": [
+        "Transforms structured analytical data into narratives, risk scores and enterprise risk reports using LLMs.",
+        "LLM inference optimized through JSON chunking, context engineering, prompt optimization and API response caching, cutting token consumption while holding output quality.",
+        "An automated QC framework audits generated reports in real time, checking that every narrative, number and risk score is grounded in the source data."
+      ],
+      "stack": [
+        "Python",
+        "FastAPI",
+        "PostgreSQL",
+        "Claude",
+        "OpenAI"
+      ],
+      "note": "Commercial product. Architecture and code are not public."
+    },
+    {
       "id": "compliance",
       "name": "Enterprise AI Compliance Assistant",
       "subtitle": "Document retrieval and structured reporting",
-      "context": "Internal Project",
       "proprietary": true,
       "blurb": "A compliance platform for enterprise document retrieval, risk analysis and structured report generation, architected around LangChain for orchestration with LangGraph evaluated for multi-step agent flows.",
       "points": [
@@ -83,32 +102,9 @@
       "note": "Internal platform. Architecture and code are not public."
     },
     {
-      "id": "Portfolio",
-      "name": "This site's assistant",
-      "subtitle": "The one thing here you can actually poke at",
-      "context": "Personal · open source",
-      "proprietary": false,
-      "blurb": "A grounded question-answering assistant over my own profile, using full-context injection instead of RAG — the whole profile is roughly 1,200 tokens, so retrieval would add latency and failure modes to solve a problem that doesn't exist at this size. Grounding is enforced with structured output, answers are cached and rate-limited, and everything is regression-tested before every deploy.",
-      "points": [
-        "Full-context injection rather than retrieval: the entire profile is roughly 1,200 tokens, so chunking and re-ranking would add latency and failure modes to solve a problem that doesn't exist at this size.",
-        "Grounding is enforced with structured output. The model returns a JSON object with a grounded flag and a refusal reason, and the UI branches on the flag rather than string-matching a sentence.",
-        "Answers are cached by normalized question and rate-limited per visitor, because a portfolio assistant gets asked the same fifteen questions forever.",
-        "Regression-tested against a fixed question set covering grounding, refusals and confidentiality before every deploy."
-      ],
-      "stack": [
-        "TypeScript",
-        "React",
-        "Three.js",
-        "Vercel Functions",
-        "Groq"
-      ],
-      "note": "UPDATE: add the repo link once the repo is public."
-    },
-    {
       "id": "nl2sql",
       "name": "Fraud Detection Assistant",
       "subtitle": "Natural language to SQL over procurement data",
-      "context": "Alchemyte · shipped",
       "proprietary": true,
       "blurb": "Audit and compliance teams ask questions in plain English; the assistant, built with Python, SQL, Vanna AI and GPT-4, writes and runs the SQL against procurement schemas. I owned the prompt engineering layer, which is where most of the reliability came from.",
       "points": [
@@ -126,27 +122,28 @@
       "note": "Client work. Code is not public."
     },
     {
-      "id": "d7",
-      "name": "D7",
-      "subtitle": "AI-powered third-party due diligence",
-      "context": "FortifAI · production",
-      "proprietary": true,
-      "blurb": "A platform that turns structured analytical data into dimension-specific narratives, risk scores and full enterprise risk reports. LLM inference is optimized through JSON chunking, context engineering and response caching, and an automated QC framework grounds every narrative, number and risk score against the source data in real time. I own the backend end to end.",
-      "points": [
-        "Transforms structured analytical data into narratives, risk scores and enterprise risk reports using LLMs.",
-        "LLM inference optimized through JSON chunking, context engineering, prompt optimization and API response caching, cutting token consumption while holding output quality.",
-        "An automated QC framework audits generated reports in real time, checking that every narrative, number and risk score is grounded in the source data."
-      ],
-      "stack": [
-        "Python",
-        "FastAPI",
-        "PostgreSQL",
-        "Claude",
-        "OpenAI"
-      ],
-      "note": "Commercial product. Architecture and code are not public."
-    }
-  ],
+    "id": "Portfolio",
+    "name": "This site",
+    "subtitle": "Built end-to-end, down to the shader",
+    "proprietary": false,
+    "blurb": "Everything here is hand-built rather than templated: a custom WebGL background that morphs from a diffuse point cloud into labelled clusters as you scroll, an entity-relationship-style skills diagram drawn in raw SVG, and a grounded question-answering assistant over my own profile using full-context injection instead of RAG. No component library carrying the design, no charting package drawing the diagrams - the interesting parts are the parts I wrote.",
+    "points": [
+      "A custom Three.js/GLSL background: a field of points that condenses from an undifferentiated cloud into labelled clusters as you scroll, and visibly reacts when the on-site assistant is retrieving an answer.",
+      "An ER-diagram-style skills visualization built in plain SVG and React state - hover or search to trace which tools sit under which domain, with no charting library involved.",
+      "A grounded question-answering assistant over my own profile: full-context injection rather than retrieval, since the whole profile is roughly 1,200 tokens and chunking would add failure modes to solve a problem that doesn't exist at this size.",
+      "Grounding enforced with structured output rather than string-matching, answers cached and rate-limited per visitor, and the assistant regression-tested against a fixed question set before every deploy."
+    ],
+    "stack": [
+      "TypeScript",
+      "React",
+      "Three.js",
+      "WebGL/GLSL",
+      "Vercel Functions",
+      "Groq"
+    ],
+    "note": "UPDATE: add the repo link once the repo is public."
+  }
+],
   "skills": [
     {
       "group": "Languages",
@@ -251,11 +248,11 @@
   },
   "assistant": {
     "suggestions": [
-      "What does Nishil work on?",
-      "What has he built with LLMs?",
-      "Which frameworks does he use?"
+      "Current role?",
+      "Notable projects?",
+      "Tech stack?"
     ],
-    "confidentialityRule": "D7 and the FortifAI compliance platform are commercial products. Nothing beyond what is written on this site may be disclosed about their internals.",
+    "confidentialityRule": "D7 and the Fortifai compliance platform are commercial products. Nothing beyond what is written on this site may be disclosed about their internals.",
     "refusalMessage": "I only answer questions about Nishil's work and background. Ask me about his experience, projects or stack."
   }
 }

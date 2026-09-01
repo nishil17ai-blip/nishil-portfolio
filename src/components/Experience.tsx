@@ -23,7 +23,7 @@ export function Experience() {
         {profile.experience.map((job) => (
           <div className="role" key={job.company} data-current={job.end === null}>
             <div className="role-dates">
-              {formatMonth(job.start)} — {job.endLabel}
+              {formatMonth(job.start)} - {job.endLabel}
             </div>
             <h3>{job.title}</h3>
             <div className="role-company">
