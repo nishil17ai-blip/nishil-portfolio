@@ -2186,6 +2186,77 @@ p {
   z-index: 1;
 }
 
+/* ==================================================================
+   Back to top
+   Small floating arrow, bottom-right - fades in once there's real
+   distance to climb back up, on both mobile and desktop. Sits at a
+   lower z-index than .chat-panel (45 / 65 on mobile), so when the
+   chat panel is open it's simply covered by it in that same corner,
+   and reappears once the panel closes.
+   ================================================================== */
+.back-to-top {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 44;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  color: var(--muted);
+  background: rgba(15, 21, 36, 0.8);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease, color 0.2s ease,
+    border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.back-to-top[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  color: var(--text);
+  border-color: rgba(79, 107, 255, 0.5);
+  background: rgba(79, 107, 255, 0.14);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), 0 0 18px rgba(79, 107, 255, 0.28);
+}
+
+.back-to-top:active {
+  transform: translateY(0) scale(0.94);
+}
+
+/* On the mobile full-screen chat layout the panel already covers this
+   corner (and sits above it, z-index: 65 vs 44), so no extra hiding
+   logic is needed - it's simply obscured while the panel is open and
+   reappears the moment it closes. On very small phones, nudge it in
+   from the edge slightly and keep it a touch smaller so it doesn't
+   crowd the thumb-reach zone. */
+@media (max-width: 420px) {
+  .back-to-top {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: opacity 0.3s ease, color 0.2s ease, border-color 0.2s ease,
+      background 0.2s ease, box-shadow 0.2s ease;
+    transform: none !important;
+  }
+}
+
 .chat-panel {
   position: fixed;
   right: clamp(1rem, 3vw, 2rem);
@@ -2219,6 +2290,15 @@ p {
     max-height: calc(100svh - 1rem);
     height: calc(100svh - 1rem);
     border-radius: 0.85rem;
+    /* .nav is position:fixed with z-index: 61 and sits at top:0 across
+       the full width, so on this full-screen mobile layout its band
+       was painting directly over .chat-head - including the close (✕)
+       button - even though the button existed in the DOM the whole
+       time. Above both .nav (61) and the portaled .nav-mobile-menu (60)
+       so the panel (and its close button) always render on top, fully
+       covering the nav underneath while it's open - matching the
+       full-screen takeover this layout is already going for. */
+    z-index: 65;
   }
 }
 
@@ -2330,6 +2410,16 @@ p {
   color: var(--text);
   background: rgba(255, 255, 255, 0.06);
   transform: rotate(90deg);
+}
+
+/* Slightly larger tap target on touch screens - 1.9rem is fine for a
+   mouse cursor but tight for a fingertip. */
+@media (max-width: 560px) {
+  .chat-close {
+    width: 2.3rem;
+    height: 2.3rem;
+    font-size: 1rem;
+  }
 }
 
 .chat-log {

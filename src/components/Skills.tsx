@@ -35,7 +35,23 @@ export function Skills() {
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
-  const q = query.trim().toLowerCase();
+  // The search box accepts more than one skill at a time, comma- (or
+  // semicolon-) separated - e.g. "react, docker, aws" - so each term
+  // is matched independently rather than the whole string being
+  // treated as one continuous substring (which meant typing a second
+  // skill just broke the match instead of adding to it). Multi-word
+  // skill names like "Machine Learning" stay intact as one term since
+  // only commas/semicolons split, not whitespace.
+  const terms = query
+    .split(/[,;]+/)
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean);
+
+  const itemMatchesQuery = (item: string) => {
+    if (!terms.length) return false;
+    const lower = item.toLowerCase();
+    return terms.some((t) => lower.includes(t));
+  };
 
   const { leftBoxes, rightBoxes, height, matchCount } = useMemo(() => {
     const leftBoxes = stackSide(left, 0);
@@ -53,26 +69,32 @@ export function Skills() {
     const shiftedLeft = leftBoxes.map((b) => ({ ...b, y: b.y + leftOffset }));
     const shiftedRight = rightBoxes.map((b) => ({ ...b, y: b.y + rightOffset }));
 
-    const matchCount = q
+    const matchCount = terms.length
       ? profile.skills.reduce(
-          (n, g) => n + g.items.filter((it) => it.toLowerCase().includes(q)).length,
+          (n, g) =>
+            n +
+            g.items.filter((it) => {
+              const lower = it.toLowerCase();
+              return terms.some((t) => lower.includes(t));
+            }).length,
           0
         )
       : 0;
 
     return { leftBoxes: shiftedLeft, rightBoxes: shiftedRight, height, matchCount };
-  }, [left, right, q]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [left, right, terms.join("|")]);
 
   const cx = WIDTH / 2;
   const cy = height / 2;
 
   const groupMatches = (groupName: string) => {
-    if (!q) return false;
+    if (!terms.length) return false;
     const g = profile.skills.find((s) => s.group === groupName);
-    return !!g && g.items.some((it) => it.toLowerCase().includes(q));
+    return !!g && g.items.some((it) => itemMatchesQuery(it));
   };
 
-  const anyActive = !!activeGroup || !!q;
+  const anyActive = !!activeGroup || terms.length > 0;
 
   // Mobile-only "pin and pan": rather than fighting touch events to
   // redirect vertical scroll into horizontal scrollLeft (unreliable -
@@ -244,7 +266,7 @@ export function Skills() {
             y2={y + HEADER_H - 8}
           />
           {group.items.map((item, i) => {
-            const itemMatch = q && item.toLowerCase().includes(q);
+            const itemMatch = itemMatchesQuery(item);
             return (
               <text
                 key={item}
@@ -274,9 +296,10 @@ export function Skills() {
           <input
             type="text"
             className="erd-search"
-            placeholder="Search a skill…"
+            placeholder="Search skills… separate with commas"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search skills, separate multiple with commas"
           />
           {query && (
             <button
@@ -289,9 +312,10 @@ export function Skills() {
             </button>
           )}
         </div>
-        {q && (
+        {terms.length > 0 && (
           <span className="erd-count">
             {matchCount} match{matchCount === 1 ? "" : "es"}
+            {terms.length > 1 ? ` across ${terms.length} terms` : ""}
           </span>
         )}
       </div>
