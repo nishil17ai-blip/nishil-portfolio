@@ -97,7 +97,14 @@ export function Chat({
   }, [open, initialGreeting]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    // Auto-focusing is a nice touch on desktop (keyboard input works
+    // immediately), but on a touch device it pops the on-screen
+    // keyboard the instant the panel opens - before the visitor has
+    // even read NIEL's greeting - and eats up to half the viewport
+    // doing it. Matching against a coarse pointer is a reasonable
+    // proxy for "has a virtual keyboard that would appear."
+    const hasCoarsePointer = window.matchMedia?.("(pointer: coarse)").matches;
+    if (open && !hasCoarsePointer) inputRef.current?.focus();
   }, [open]);
 
   useEffect(() => {
