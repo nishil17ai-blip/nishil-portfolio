@@ -9,6 +9,7 @@ import { Publications } from "./components/Publications";
 import { Footer } from "./components/Footer";
 import { Chat } from "./components/Chat";
 import { Summary } from "./components/Summary";
+import { BackToTop } from "./components/BackToTop";
 import { useActiveSection, useScrollProgress } from "./lib/hooks";
 
 const SECTIONS = ["top", "work", "experience", "skills", "writing", "contact"];
@@ -85,6 +86,8 @@ export default function App() {
         setOpen={setChatOpen}
         initialGreeting={chatGreeting}
       />
+
+      <BackToTop />
     </>
   );
 }
