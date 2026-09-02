@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { profile, isPlaceholder } from "../lib/profile";
 import { SectionLabel } from "./SectionLabel";
 
@@ -47,6 +47,25 @@ export function Footer() {
   ].filter((l) => !isPlaceholder(l.href));
 
   const [activeTip, setActiveTip] = useState<string | null>(null);
+  const socialsRef = useRef<HTMLDivElement>(null);
+
+  // Only relevant for the tap-to-open path on touch devices - a hover
+  // dismissal already happens naturally via onMouseLeave. Tapping
+  // anywhere outside the social icons closes whatever tip is open.
+  useEffect(() => {
+    if (!activeTip) return;
+    const onOutside = (e: MouseEvent | TouchEvent) => {
+      if (socialsRef.current && !socialsRef.current.contains(e.target as Node)) {
+        setActiveTip(null);
+      }
+    };
+    document.addEventListener("touchstart", onOutside);
+    document.addEventListener("click", onOutside);
+    return () => {
+      document.removeEventListener("touchstart", onOutside);
+      document.removeEventListener("click", onOutside);
+    };
+  }, [activeTip]);
 
   const [email, setEmail] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -79,6 +98,21 @@ export function Footer() {
   };
 
   const handleSocialLeave = () => setActiveTip(null);
+
+  // Hover has no equivalent on touch, so without this the GitHub note
+  // (the only one with a `note` at all) would simply never be visible
+  // on a phone or tablet. A tap toggles it instead; the link itself
+  // still opens normally via href, so this only ever prevents that
+  // *specific* tap from also navigating - not every tap on the icon.
+  const handleSocialClick = (l: (typeof socials)[number]) => (e: React.MouseEvent) => {
+    if (!l.note) return;
+    if (activeTip === l.label) {
+      setActiveTip(null);
+      return;
+    }
+    e.preventDefault();
+    setActiveTip(l.label);
+  };
 
   return (
     <section id="contact" className="footer">
@@ -130,7 +164,7 @@ export function Footer() {
         </div>
 
         <div className="footer-panel">
-          <div className="social-icons">
+          <div className="social-icons" ref={socialsRef}>
             {socials.map((l) => {
               const Icon = ICONS[l.icon];
               return (
@@ -146,6 +180,7 @@ export function Footer() {
                     onMouseLeave={handleSocialLeave}
                     onFocus={handleSocialEnter(l)}
                     onBlur={handleSocialLeave}
+                    onClick={handleSocialClick(l)}
                   >
                     <Icon />
                   </a>

@@ -75,6 +75,32 @@ export function Skills() {
 
   const anyActive = !!activeGroup || !!q;
 
+  // SVG <rect> can't use backdrop-filter - blur only works on real HTML
+  // elements. So the frosted-glass look each box needs (to match the
+  // Work/Experience cards) comes from an invisible HTML div stacked
+  // exactly on top of each box, positioned in percentages of the
+  // SVG's own coordinate space so it tracks the diagram's scaling
+  // 1:1 on every screen size, including the horizontally-scrolling
+  // mobile layout.
+  const renderBlurOverlay = (boxes: typeof leftBoxes, side: "left" | "right") =>
+    boxes.map(({ group, y, h }) => {
+      const x = side === "left" ? SIDE_MARGIN : WIDTH - SIDE_MARGIN - BOX_W;
+      const isHighlighted = activeGroup === group.group || groupMatches(group.group);
+      const isDim = anyActive && !isHighlighted;
+      return (
+        <div
+          key={group.group}
+          className={`erd-box-blur${isDim ? " is-dim" : ""}`}
+          style={{
+            left: `${(x / WIDTH) * 100}%`,
+            top: `${(y / height) * 100}%`,
+            width: `${(BOX_W / WIDTH) * 100}%`,
+            height: `${(h / height) * 100}%`,
+          }}
+        />
+      );
+    });
+
   const renderSide = (boxes: typeof leftBoxes, side: "left" | "right") =>
     boxes.map(({ group, y, h }) => {
       const x = side === "left" ? SIDE_MARGIN : WIDTH - SIDE_MARGIN - BOX_W;
@@ -164,25 +190,32 @@ export function Skills() {
       </div>
 
       <div className="erd-wrap reveal" ref={ref} data-shown={shown}>
-        <svg
-          viewBox={`0 0 ${WIDTH} ${height}`}
-          className="erd-svg"
-          role="img"
-          aria-label="Diagram of skills grouped by category, connected to a central node"
-        >
-          {renderSide(leftBoxes, "left")}
-          {renderSide(rightBoxes, "right")}
+        <div className="erd-inner" style={{ aspectRatio: `${WIDTH} / ${height}` }}>
+          <div className="erd-blur-layer" aria-hidden="true">
+            {renderBlurOverlay(leftBoxes, "left")}
+            {renderBlurOverlay(rightBoxes, "right")}
+          </div>
 
-          <g className="erd-center">
-            <circle cx={cx} cy={cy} r={CENTER_R} />
-            <text x={cx} y={cy - 6} className="erd-center-name">
-              Nishil
-            </text>
-            <text x={cx} y={cy + 16} className="erd-center-name">
-              Patel
-            </text>
-          </g>
-        </svg>
+          <svg
+            viewBox={`0 0 ${WIDTH} ${height}`}
+            className="erd-svg"
+            role="img"
+            aria-label="Diagram of skills grouped by category, connected to a central node"
+          >
+            {renderSide(leftBoxes, "left")}
+            {renderSide(rightBoxes, "right")}
+
+            <g className="erd-center">
+              <circle cx={cx} cy={cy} r={CENTER_R} />
+              <text x={cx} y={cy - 6} className="erd-center-name">
+                Nishil
+              </text>
+              <text x={cx} y={cy + 16} className="erd-center-name">
+                Patel
+              </text>
+            </g>
+          </svg>
+        </div>
       </div>
     </section>
   );
