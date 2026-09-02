@@ -219,7 +219,11 @@ p {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 30;
+  /* Above the portaled mobile menu (z-index: 60) so the burger/close
+     button - now compared against the menu at .nav's own stacking
+     level rather than as a direct sibling - stays visible and tappable
+     while the menu is open. */
+  z-index: 61;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -387,7 +391,8 @@ p {
   gap: 5px;
   width: 2.25rem;
   height: 2.25rem;
-  z-index: 31;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-burger span {
@@ -429,28 +434,75 @@ p {
   .nav-mobile-menu {
     position: fixed;
     inset: 0;
-    z-index: 29;
+    z-index: 60;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 1.75rem;
     padding: 6rem 1.5rem 3rem;
-    background: rgba(7, 10, 18, 0.97);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    /* !important here is deliberate: this exact rule has been
+       overridden or gone unapplied in testing despite being correct on
+       paper (solid var(--ink), no alpha channel) - forcing it wins
+       against anything else in the cascade that might otherwise take
+       precedence, rather than relying on selector order/specificity
+       alone. */
+    background: var(--ink) !important;
     font-family: var(--mono);
     font-size: 1.05rem;
     transform: translateY(-8px);
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
   }
 
   .nav-mobile-menu[data-open="true"] {
     opacity: 1;
+    visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
+  }
+
+  /* Self-contained close control - lives in the same portaled subtree
+     as the rest of the menu, so it's guaranteed to render and stay
+     visible together with it regardless of how the separate nav bar's
+     own stacking happens to resolve. */
+  .nav-mobile-close {
+    position: absolute;
+    top: 1.4rem;
+    right: var(--gutter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(150, 168, 220, 0.08);
+    border: 1px solid rgba(150, 168, 220, 0.22);
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .nav-mobile-close:hover {
+    background: rgba(255, 159, 69, 0.1);
+    border-color: rgba(255, 159, 69, 0.4);
+  }
+
+  .nav-mobile-close span {
+    position: absolute;
+    width: 1.1rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--text);
+  }
+
+  .nav-mobile-close span:first-child {
+    transform: rotate(45deg);
+  }
+
+  .nav-mobile-close span:last-child {
+    transform: rotate(-45deg);
   }
 
   .nav-mobile-menu a {
@@ -1123,44 +1175,11 @@ p {
     grid-template-columns: 1fr;
   }
 
-  /* Rather than disappearing, the project index becomes a sticky
-     horizontal tab strip above the cards - still lets a visitor jump
-     straight to a project without hunting through a long scroll. */
+  /* Desktop keeps the sticky project index; on mobile it's removed
+     entirely rather than reflowed into a tab strip - cards are simply
+     read in order via normal scroll. */
   .work-index {
-    position: sticky;
-    top: 4.4rem;
-    z-index: 5;
-    flex-direction: row;
-    gap: 0;
-    border-left: none;
-    border-bottom: var(--rule);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    background: rgba(7, 10, 18, 0.92);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    margin: 0 calc(var(--gutter) * -1) 1.5rem;
-    padding: 0 var(--gutter);
-  }
-
-  .work-index::-webkit-scrollbar {
     display: none;
-  }
-
-  .work-index button {
-    flex-shrink: 0;
-    text-align: center;
-    padding: 0.85rem 1rem;
-    border-left: none;
-    border-bottom: 2px solid transparent;
-    margin-left: 0;
-    white-space: nowrap;
-  }
-
-  .work-index button[data-active="true"] {
-    border-left-color: transparent;
-    border-bottom-color: var(--accent);
   }
 }
 
@@ -1509,22 +1528,33 @@ p {
     min-width: 0;
   }
 
-  /* The diagram itself stays full detail and scrolls horizontally
-     rather than shrinking text to illegibility - just nudge the visitor
-     that there's more to see off to the side. */
+  /* Position is now driven entirely by JS (translateX tied to scroll
+     progress through .erd-pin-zone), not native horizontal scrolling -
+     overflow stays hidden so there's no separate scrollbar/gesture
+     fighting the transform, and no way to drag it out of sync with
+     where the page scroll thinks it should be. */
   .erd-wrap {
+    overflow: hidden;
+    will-change: transform;
+  }
+
+  /* The spacer that converts "scroll past this much extra height" into
+     the horizontal sweep distance. Collapses to a plain block with
+     zero added height whenever panExtraPx is 0 (desktop, or a mobile
+     diagram that already fits - inline height style only gets applied
+     when there's real overflow to pan through). */
+  .erd-pin-zone {
     position: relative;
   }
 
-  .erd-wrap::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 2.5rem;
-    background: linear-gradient(to right, transparent, var(--ink) 92%);
-    pointer-events: none;
+  /* Pinned for the duration of .erd-pin-zone's extra height via an
+     inline position:sticky set only when panning is active - stays
+     centered in the viewport while the diagram sweeps behind it, then
+     scrolls away normally once the zone's height is exhausted. */
+  .erd-pin {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
   }
 }
 
