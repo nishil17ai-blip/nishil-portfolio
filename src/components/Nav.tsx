@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 const LINKS = [
   { id: "work", label: "Work" },
@@ -96,69 +97,96 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
   );
 
   return (
-    <nav className="nav">
-      {logo}
+    <>
+      <nav className="nav">
+        {logo}
 
-      <div className="nav-links">
-        {/* Ask NIEL button - appears when showChatBtn is true */}
-        <button
-          className="nav-chat-link"
-          data-visible={showChatBtn}
-          data-open={chatOpen}
-          onClick={onChatToggle}
-          aria-label={chatOpen ? "Close assistant" : "Ask NIEL"}
-        >
-          <span className="nav-chat-dot" />
-          {chatOpen ? "Close" : "Ask NIEL"}
-        </button>
-
-        {LINKS.map((l) => (
-          <a key={l.id} href={`#${l.id}`} data-active={active === l.id}>
-            {l.label}
-          </a>
-        ))}
-      </div>
-
-      {/* Mobile hamburger toggle - only visible under the nav-links
-         breakpoint via CSS. */}
-      <button
-        className="nav-burger"
-        data-open={menuOpen}
-        onClick={() => setMenuOpen((v) => !v)}
-        aria-label={menuOpen ? "Close menu" : "Open menu"}
-        aria-expanded={menuOpen}
-      >
-        <span />
-        <span />
-        <span />
-      </button>
-
-      {/* Mobile slide-down menu - mirrors nav-links content, including
-         Ask NIEL, so nothing is unreachable once the button hides in
-         the collapsed bar on small screens. */}
-      <div className="nav-mobile-menu" data-open={menuOpen}>
-        <button
-          className="nav-chat-link nav-chat-link--mobile"
-          data-visible={showChatBtn}
-          data-open={chatOpen}
-          onClick={handleMobileChatToggle}
-          aria-label={chatOpen ? "Close assistant" : "Ask NIEL"}
-        >
-          <span className="nav-chat-dot" />
-          {chatOpen ? "Close" : "Ask NIEL"}
-        </button>
-
-        {LINKS.map((l) => (
-          <a
-            key={l.id}
-            href={`#${l.id}`}
-            data-active={active === l.id}
-            onClick={handleLinkClick}
+        <div className="nav-links">
+          {/* Ask NIEL button - appears when showChatBtn is true */}
+          <button
+            className="nav-chat-link"
+            data-visible={showChatBtn}
+            data-open={chatOpen}
+            onClick={onChatToggle}
+            aria-label={chatOpen ? "Close assistant" : "Ask NIEL"}
           >
-            {l.label}
-          </a>
-        ))}
-      </div>
-    </nav>
+            <span className="nav-chat-dot" />
+            {chatOpen ? "Close" : "Ask NIEL"}
+          </button>
+
+          {LINKS.map((l) => (
+            <a key={l.id} href={`#${l.id}`} data-active={active === l.id}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+
+        {/* Mobile hamburger toggle - only visible under the nav-links
+           breakpoint via CSS. */}
+        <button
+          className="nav-burger"
+          data-open={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </nav>
+
+      {/* Mobile slide-down menu - portaled to document.body rather than
+         nested inside <nav>. .nav has backdrop-filter, which (like
+         transform) creates a containing block for position:fixed
+         descendants - so inset:0 here was resolving against .nav's own
+         thin bounding box instead of the viewport, squashing this
+         menu's actual background down to nav-bar height while its
+         content still rendered past that, unclipped and with nothing
+         opaque behind it. Portaling to body removes it from that
+         subtree entirely and restores normal viewport-relative fixed
+         positioning.
+
+         The close button lives inside this same portaled subtree
+         (rather than relying on the separate nav-bar burger button
+         staying visible above the menu via z-index) so there is no
+         cross-subtree stacking dependency at all - wherever this menu
+         renders, its own close control renders with it. */}
+      {createPortal(
+        <div className="nav-mobile-menu" data-open={menuOpen}>
+          <button
+            className="nav-mobile-close"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <span />
+            <span />
+          </button>
+
+          <button
+            className="nav-chat-link nav-chat-link--mobile"
+            data-visible={showChatBtn}
+            data-open={chatOpen}
+            onClick={handleMobileChatToggle}
+            aria-label={chatOpen ? "Close assistant" : "Ask NIEL"}
+          >
+            <span className="nav-chat-dot" />
+            {chatOpen ? "Close" : "Ask NIEL"}
+          </button>
+
+          {LINKS.map((l) => (
+            <a
+              key={l.id}
+              href={`#${l.id}`}
+              data-active={active === l.id}
+              onClick={handleLinkClick}
+            >
+              {l.label}
+            </a>
+          ))}
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }
