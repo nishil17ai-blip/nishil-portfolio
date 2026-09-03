@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { profile } from "../lib/profile";
 import { useScene } from "../lib/store";
+import { useScramble } from "../lib/hooks";
 
 interface Message {
   role: "user" | "assistant";
@@ -27,6 +28,20 @@ const PACE_NOTICE_TEXT = "That's a few in a row - give it a minute, then keep go
 // same tab, but clears the moment the tab itself is closed - which is
 // exactly "pick the conversation back up until you close the tab."
 const STORAGE_KEY = "niel:chat-history";
+
+// How long an assistant reply takes to resolve from scrambled noise
+// into readable text once it arrives - short enough not to add
+// perceptible reading delay on top of the "NIEL is typing…" wait, but
+// long enough to read as the answer materializing rather than a
+// glitch. Same technique the Hero headline uses (useScramble), reused
+// here so the assistant's replies feel like they're being resolved
+// from the same vector space the rest of the page is built on.
+const ASSISTANT_DECODE_MS = 480;
+
+function AssistantBody({ text }: { text: string }) {
+  const display = useScramble(text, true, ASSISTANT_DECODE_MS);
+  return <>{display}</>;
+}
 
 function loadStoredMessages(): Message[] | null {
   if (typeof window === "undefined") return null;
@@ -59,6 +74,11 @@ export function Chat({
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const seededRef = useRef(false);
+  // Read once - this doesn't need to react live to the setting
+  // changing mid-session, just whether decode-in should run at all.
+  const [prefersReducedMotion] = useState(
+    () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
+  );
 
   // Persist on every change. sessionStorage is per-tab and synchronous,
   // so this is cheap enough to do on every message rather than
@@ -228,7 +248,13 @@ export function Chat({
                     ⓘ off-page
                   </span>
                 )}
-                <div className="msg-body">{m.body}</div>
+                <div className="msg-body">
+                  {m.role === "assistant" && !prefersReducedMotion ? (
+                    <AssistantBody text={m.body} />
+                  ) : (
+                    m.body
+                  )}
+                </div>
               </div>
             </div>
           ),
@@ -288,6 +314,10 @@ export function Chat({
           </svg>
         </button>
       </form>
+
+      <p className="chat-disclaimer">
+        Messages are rate-limited to keep it fair for everyone.
+      </p>
     </div>
   );
 }

@@ -25,9 +25,19 @@ export function Scene() {
         dpr={[1, capability.maxDpr]}
         camera={{ position: [0, 0, 17], fov: 55 }}
         gl={{ antialias: false, powerPreference: "high-performance", alpha: true }}
-        frameloop={capability.animate && visible ? "always" : "demand"}
+        // Needs a live, per-frame render loop if EITHER idle animation
+        // or cursor-parallax is active - previously this only checked
+        // `animate`, so a visitor with reduce-motion on (animate false)
+        // got "demand" frameloop even though parallax was meant to
+        // keep responding to their cursor, and a static single frame
+        // never picks up new pointer positions on its own.
+        frameloop={(capability.animate || capability.parallax) && visible ? "always" : "demand"}
       >
-        <EmbeddingField count={capability.count} animate={capability.animate} />
+        <EmbeddingField
+          count={capability.count}
+          animate={capability.animate}
+          parallax={capability.parallax}
+        />
       </Canvas>
     </div>
   );

@@ -133,7 +133,15 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-export function EmbeddingField({ count, animate }: { count: number; animate: boolean }) {
+export function EmbeddingField({
+  count,
+  animate,
+  parallax,
+}: {
+  count: number;
+  animate: boolean;
+  parallax: boolean;
+}) {
   const materialRef = useRef<ShaderMaterial>(null);
   const groupRef = useRef<Points>(null);
   const { size } = useThree();
@@ -246,9 +254,15 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
     material.uniforms.uEnergy.value = e.energy;
     if (animate) material.uniforms.uTime.value = state.clock.elapsedTime;
 
-    // Parallax: the field leans toward the cursor, gently.
-    e.x += (pointer.current.x * 0.16 - e.x) * k;
-    e.y += (pointer.current.y * 0.1 - e.y) * k;
+    // Parallax: the field leans toward the cursor, gently - kept
+    // independent of `animate` (see the `parallax` prop docs in
+    // capability.ts) so this still tracks the mouse even when a
+    // visitor's reduce-motion preference has turned off the ambient
+    // drift/rotation below.
+    if (parallax) {
+      e.x += (pointer.current.x * 0.16 - e.x) * k;
+      e.y += (pointer.current.y * 0.1 - e.y) * k;
+    }
     group.rotation.y = e.x + state.clock.elapsedTime * (animate ? 0.012 : 0);
     group.rotation.x = -e.y;
   });
@@ -256,14 +270,14 @@ export function EmbeddingField({ count, animate }: { count: number; animate: boo
   // Pointer tracked on the window, because the canvas itself is
   // pointer-events: none and sits behind the content.
   useMemo(() => {
-    if (typeof window === "undefined" || !animate) return;
+    if (typeof window === "undefined" || !parallax) return;
     const onMove = (ev: PointerEvent) => {
       pointer.current.x = (ev.clientX / window.innerWidth) * 2 - 1;
       pointer.current.y = (ev.clientY / window.innerHeight) * 2 - 1;
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, [animate]);
+  }, [parallax]);
 
   uniforms.uDpr.value = Math.min(window.devicePixelRatio || 1, 1.75);
   uniforms.uSize.value = size.width < 768 ? 8.5 : 7.0;
