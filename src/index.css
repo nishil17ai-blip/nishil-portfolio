@@ -235,21 +235,23 @@ p {
   backdrop-filter: blur(2px);
 }
 
-/* ── Wordmark: "Nishil Patel" at the top of the page, crossfading to
-   "NEIL" on scroll - once collapsed to "NEIL", the mark itself opens
-   the assistant (same action as the "Ask NIEL" pill), instead of just
-   being a back-to-top link. Both strings are stacked in the same grid
-   cell so the swap crossfades in place without a layout-width jump,
-   regardless of how different "Nishil Patel" and "NEIL" are in length. */
+/* ── Wordmark: "NIshil PatEL" -> "NIEL" on scroll, same technique
+   anthropic.com uses for ANTHROPIC -> AI. The letters that survive the
+   collapse (N, I, E, L) never move or resize; only the letters between
+   them shrink away, so the two forms read as the same mark resolving
+   rather than one swapping for the other. Clicking it opens the
+   assistant either way (same action as the "Ask NIEL" pill), not just
+   a back-to-top link. ── */
 .nav-logo {
   position: relative;
-  display: inline-grid;
+  display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   font-family: var(--mono);
   font-size: 0.95rem;
   font-weight: 500;
   letter-spacing: 0.01em;
+  text-transform: uppercase;
   color: #fff;
   text-shadow: 0 0 8px rgba(255, 209, 102, 0.3);
   z-index: 1;
@@ -295,33 +297,29 @@ p {
   opacity: 0.85;
 }
 
-.nav-logo-full,
-.nav-logo-short {
-  grid-area: 1 / 1;
+.nav-logo-letter {
+  display: inline-block;
   white-space: nowrap;
-  transition: opacity 0.35s ease, transform 0.4s ease;
 }
 
-.nav-logo-short {
+.nav-logo-letter--collapsible {
+  max-width: 1.2em;
+  opacity: 1;
+  transform: translateY(0);
+  overflow: hidden;
+  transition: max-width 0.5s cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 0.35s ease, transform 0.4s ease;
+}
+
+.nav-logo[data-scrolled="true"] .nav-logo-letter--collapsible {
+  max-width: 0;
   opacity: 0;
   transform: translateY(-0.3em);
 }
 
-.nav-logo[data-scrolled="true"] .nav-logo-full {
-  opacity: 0;
-  transform: translateY(0.3em);
-}
-
-.nav-logo[data-scrolled="true"] .nav-logo-short {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .nav-logo-full,
-  .nav-logo-short {
-    transition: opacity 0.35s ease;
-    transform: none !important;
+  .nav-logo-letter--collapsible {
+    transition: none;
   }
 }
 

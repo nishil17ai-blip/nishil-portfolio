@@ -10,14 +10,21 @@ const LINKS = [
   { id: "contact", label: "Contact" },
 ];
 
-// Full name at the top of the page, collapsing to the assistant's name
-// once scrolled. Clicking the mark opens the assistant at either
-// state - "Ask NIEL" while scrolled (mark reads "NEIL"), and now the
-// same action from the top of the page too (mark reads "Nishil
-// Patel") - rather than the top state being a separate back-to-top
-// link like it was before.
-const FULL_NAME = "Nishil Patel";
-const SHORT_NAME = "NEIL";
+// The same technique anthropic.com uses for ANTHROPIC -> AI: keep a
+// few letters of the full name fixed in place and collapse everything
+// between them to zero width, so the short form reads as the long
+// form *resolving* rather than being swapped out. That only works if
+// the short form's letters actually appear, in order, inside the full
+// name - "NIEL" does: N and I are the first two letters of "Nishil",
+// E and L are the last two of "Patel". The array itself stays normal
+// mixed case; `.nav-logo` uppercases everything with CSS so it always
+// reads as a clean "NISHIL PATEL" -> "NIEL", not a stylized mixed-case
+// hidden acronym. The space is a non-breaking space (`\u00A0`) rather
+// than a plain " " - a lone regular space as the entire text content
+// of a flex/inline-block item isn't reliably rendered by every
+// browser and was disappearing, merging the two words together.
+const NAME_LETTERS = ["N", "i", "s", "h", "i", "l", "\u00A0", "P", "a", "t", "e", "l"];
+const KEPT_INDICES = new Set([0, 1, 10, 11]); // "N" "i" ... "e" "l" -> NIEL
 
 // How far down the page before the mark is considered "scrolled" -
 // small enough that it reacts almost immediately, matching the snappy
@@ -46,10 +53,10 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
   const chatPillPulse = usePulse();
   const chatPillMobilePulse = usePulse();
 
-  // Drives the wordmark swap: full "Nishil Patel" at the very top of
-  // the page, crossfading to "NEIL" the moment the visitor scrolls
-  // past the threshold, and back the instant they return to the top -
-  // both directions, exactly like Anthropic's header.
+  // Drives the wordmark morph: full "NISHIL PATEL" at the very top of
+  // the page, collapsing to "NIEL" the moment the visitor scrolls past
+  // the threshold, and expanding back the instant they return to the
+  // top - both directions, exactly like Anthropic's header.
   useEffect(() => {
     const evaluate = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
     evaluate();
@@ -92,8 +99,8 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
   }
 
   // Both states now do the same thing: open the assistant. The
-  // scrolled/"NEIL" click already did this; this just extends the
-  // same behavior to the top-of-page/"Nishil Patel" state too, since
+  // scrolled/"NIEL" click already did this; this just extends the
+  // same behavior to the top-of-page/"NISHIL PATEL" state too, since
   // it's the primary way into NIEL directly from the logo at any
   // scroll position now, not just after scrolling.
   function handleLogoClick() {
@@ -112,12 +119,15 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
       onClick={handleLogoClick}
       aria-label={logoLabel}
     >
-      <span className="nav-logo-full" aria-hidden={scrolled}>
-        {FULL_NAME}
-      </span>
-      <span className="nav-logo-short" aria-hidden={!scrolled}>
-        {SHORT_NAME}
-      </span>
+      {NAME_LETTERS.map((letter, i) => (
+        <span
+          key={i}
+          className={`nav-logo-letter${KEPT_INDICES.has(i) ? "" : " nav-logo-letter--collapsible"}`}
+          aria-hidden={scrolled && !KEPT_INDICES.has(i) ? true : undefined}
+        >
+          {letter}
+        </span>
+      ))}
     </button>
   );
 
