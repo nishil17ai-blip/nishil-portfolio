@@ -253,7 +253,12 @@ p {
   color: #fff;
   text-shadow: 0 0 8px rgba(255, 209, 102, 0.3);
   z-index: 1;
-  transition: text-shadow 0.3s ease;
+  border-radius: 0.4rem;
+  transition: text-shadow 0.3s ease, transform 0.15s ease;
+}
+
+.nav-logo:active {
+  transform: scale(0.95);
 }
 
 /* Same soft light-behind-glass recipe as the nav links' glow, but held
@@ -602,6 +607,41 @@ p {
 
 .nav-chat-link:hover::before {
   opacity: 0.85;
+}
+
+.nav-chat-link:active {
+  transform: translateY(-1.5px) scale(0.95);
+}
+
+/* ── Click-feedback ping, shared by the logo and both "Ask NIEL"
+   pills: a quick expanding ring right where you tapped, fired via
+   data-pulse (see usePulse in lib/hooks.ts) rather than :active, so it
+   plays a full, visible animation on every click - including a quick
+   tap on a touch screen, where :active alone can be too brief or not
+   register at all. Reads as the spark that kicks off the chat panel's
+   own bigger materialize-in a beat later. ── */
+.nav-logo[data-pulse="true"]::after,
+.nav-chat-link[data-pulse="true"]::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: inherit;
+  border: 1.5px solid rgba(255, 159, 69, 0.75);
+  pointer-events: none;
+  animation: click-ping 0.48s ease-out;
+}
+
+@keyframes click-ping {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.86);
+    border-color: rgba(255, 159, 69, 0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+    border-color: rgba(79, 107, 255, 0.25);
+  }
 }
 
 .nav-chat-link[data-open="true"] {
@@ -2292,7 +2332,52 @@ p {
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.5),
     0 0 30px rgba(79, 107, 255, 0.12);
-  animation: rise 0.22s ease-out, panel-breathe 5s ease-in-out infinite 0.3s;
+  /* The "wow" open: materialize scales/un-blurs the panel into place
+     (feels like it's resolving into focus, echoing the decode motif
+     used elsewhere on the page) while panel-open-flash bursts a brief
+     glow around it, like the portal firing once on arrival - box-shadow
+     isn't clipped by this element's own `overflow: hidden`, so the
+     flash reads fully even though the panel clips its own content.
+     panel-breathe then takes over as the ongoing idle "alive" glow. */
+  animation: panel-materialize 0.5s cubic-bezier(0.16, 1, 0.3, 1) both,
+    panel-open-flash 0.7s ease-out both, panel-breathe 5s ease-in-out infinite 0.7s;
+  transform-origin: bottom right;
+}
+
+@keyframes panel-materialize {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateY(16px);
+    filter: blur(10px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes panel-open-flash {
+  0% {
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.5),
+      0 0 0 rgba(79, 107, 255, 0);
+  }
+  35% {
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.5),
+      0 0 60px rgba(79, 107, 255, 0.55),
+      0 0 100px rgba(255, 159, 69, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.5),
+      0 0 30px rgba(79, 107, 255, 0.12);
+  }
 }
 
 /* On phones a small floating panel is cramped for actual typing/reading,
@@ -2316,13 +2401,6 @@ p {
        covering the nav underneath while it's open - matching the
        full-screen takeover this layout is already going for. */
     z-index: 65;
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
   }
 }
 
@@ -2448,9 +2526,30 @@ p {
   gap: 0.75rem;
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
+  /* Two soft corner glows (unchanged) plus two small tiled dot-grid
+     layers that slowly drift - the same "particles in vector space"
+     language as the canvas field behind the whole page and the
+     scattered fragments in the Hero, just quieter and contained to
+     this panel, so the chat itself feels like a little pocket of that
+     same embedding space rather than a plain white-noise-free box. */
   background:
     radial-gradient(ellipse 60% 40% at 15% 0%, rgba(79, 107, 255, 0.07), transparent 60%),
-    radial-gradient(ellipse 50% 35% at 100% 100%, rgba(255, 159, 69, 0.06), transparent 60%);
+    radial-gradient(ellipse 50% 35% at 100% 100%, rgba(255, 159, 69, 0.06), transparent 60%),
+    radial-gradient(circle, rgba(79, 107, 255, 0.32) 1px, transparent 1.4px),
+    radial-gradient(circle, rgba(255, 159, 69, 0.2) 1px, transparent 1.4px);
+  background-repeat: no-repeat, no-repeat, repeat, repeat;
+  background-size: auto, auto, 42px 42px, 58px 58px;
+  background-position: 0 0, 0 0, 0 0, 20px 26px;
+  animation: chat-field-drift 36s linear infinite;
+}
+
+@keyframes chat-field-drift {
+  from {
+    background-position: 0 0, 0 0, 0 0, 20px 26px;
+  }
+  to {
+    background-position: 0 0, 0 0, -420px 420px, -380px -394px;
+  }
 }
 
 .msg {
@@ -2649,7 +2748,24 @@ p {
   color: var(--text);
   font-family: var(--body);
   font-size: 0.84rem;
-  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  /* The typing caret cycles between the two brand colors rather than
+     sitting fixed on one - a small "alive" detail while you type,
+     same accent pair used throughout the page. */
+  caret-color: #4f6bff;
+  animation: caret-color-cycle 4s ease-in-out infinite;
+}
+
+@keyframes caret-color-cycle {
+  0%, 45% {
+    caret-color: #4f6bff;
+  }
+  50%, 95% {
+    caret-color: #ff9f45;
+  }
+  100% {
+    caret-color: #4f6bff;
+  }
 }
 
 .chat-form input::placeholder {
@@ -2660,7 +2776,17 @@ p {
   outline: none;
   border-color: rgba(255, 159, 69, 0.5);
   background: rgba(255, 159, 69, 0.04);
-  box-shadow: 0 0 14px rgba(255, 159, 69, 0.12);
+}
+
+/* The site has a global `:focus-visible` ring (see the top-level rule
+   near the CSS reset) for keyboard-navigation accessibility, and this
+   input is auto-focused by script on open (see Chat.tsx), which some
+   browsers also treat as focus-visible rather than a plain :focus -
+   so it needs its own explicit, no-ambiguity override here too, or
+   that global ring can still show up as an unwanted glow around the
+   pill even after the box-shadow above is gone. */
+.chat-form input:focus-visible {
+  outline: none !important;
 }
 
 .chat-send {
@@ -2684,6 +2810,27 @@ p {
 .chat-send:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+/* ── disclaimer footer, same idea as Claude's own "can make mistakes"
+   note - small, muted, out of the way, but always visible under the
+   input so it reads as a standing fact about the assistant rather
+   than a one-time warning. ── */
+.chat-disclaimer {
+  margin: 0;
+  padding: 0 0.9rem 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--faint);
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .chat-disclaimer {
+    padding: 0 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* ==================================================================
@@ -2716,10 +2863,21 @@ p {
   .chat-panel {
     animation: none;
   }
+  .chat-log {
+    animation: none;
+  }
   .avatar-ring {
     animation: none;
   }
   .msg {
     animation: none;
+  }
+  .nav-logo[data-pulse="true"]::after,
+  .nav-chat-link[data-pulse="true"]::after {
+    content: none;
+  }
+  .chat-form input {
+    animation: none;
+    caret-color: #4f6bff;
   }
 }

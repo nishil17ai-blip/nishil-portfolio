@@ -84,6 +84,32 @@ export function useDecodeTrigger() {
   return { active, trigger };
 }
 
+/** One-shot click-feedback flag: `trigger()` flips `pulsing` true for
+ *  `ms`, then it resets itself - for a CSS ping/ripple animation on a
+ *  button that should replay on every click rather than only once. */
+export function usePulse(ms = 480) {
+  const [pulsing, setPulsing] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const trigger = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    // Force a reflow-driven restart if the animation is still running
+    // from a rapid double-click, so it replays from the start rather
+    // than being a no-op because the class was already applied.
+    setPulsing(false);
+    requestAnimationFrame(() => {
+      setPulsing(true);
+      timerRef.current = setTimeout(() => setPulsing(false), ms);
+    });
+  }, [ms]);
+
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  }, []);
+
+  return { pulsing, trigger };
+}
+
 /** Fade-and-lift on first entry. Runs once per element. */
 export function useReveal<T extends HTMLElement>() {
   const ref = useRef<T>(null);

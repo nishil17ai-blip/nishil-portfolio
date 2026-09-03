@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePulse } from "../lib/hooks";
 
 const LINKS = [
   { id: "work", label: "Work" },
@@ -33,6 +34,17 @@ interface NavProps {
 export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  // A quick ping on whichever control opens/closes the assistant - the
+  // click itself gets a moment of feedback before the panel does its
+  // own, bigger materialize-in, so the whole thing reads as one
+  // continuous gesture (tap -> spark -> portal opens) rather than the
+  // panel just appearing out of nowhere. Three independent instances
+  // since the logo and the two "Ask NIEL" pills (desktop + mobile) are
+  // separate elements that can each be the one actually clicked.
+  const logoPulse = usePulse();
+  const chatPillPulse = usePulse();
+  const chatPillMobilePulse = usePulse();
 
   // Drives the wordmark swap: full "Nishil Patel" at the very top of
   // the page, crossfading to "NEIL" the moment the visitor scrolls
@@ -74,6 +86,7 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
   }
 
   function handleMobileChatToggle() {
+    chatPillMobilePulse.trigger();
     setMenuOpen(false);
     onChatToggle();
   }
@@ -84,6 +97,7 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
   // it's the primary way into NIEL directly from the logo at any
   // scroll position now, not just after scrolling.
   function handleLogoClick() {
+    logoPulse.trigger();
     onChatToggle();
   }
 
@@ -94,6 +108,7 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
       type="button"
       className="nav-logo"
       data-scrolled={scrolled}
+      data-pulse={logoPulse.pulsing}
       onClick={handleLogoClick}
       aria-label={logoLabel}
     >
@@ -117,7 +132,11 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
             className="nav-chat-link"
             data-visible={showChatBtn}
             data-open={chatOpen}
-            onClick={onChatToggle}
+            data-pulse={chatPillPulse.pulsing}
+            onClick={() => {
+              chatPillPulse.trigger();
+              onChatToggle();
+            }}
             aria-label={chatOpen ? "Close assistant" : "Ask NIEL"}
           >
             <span className="nav-chat-dot" />
@@ -177,6 +196,7 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
             className="nav-chat-link nav-chat-link--mobile"
             data-visible={showChatBtn}
             data-open={chatOpen}
+            data-pulse={chatPillMobilePulse.pulsing}
             onClick={handleMobileChatToggle}
             aria-label={chatOpen ? "Close assistant" : "Ask NIEL"}
           >

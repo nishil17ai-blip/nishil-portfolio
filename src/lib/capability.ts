@@ -1,8 +1,18 @@
 export interface Capability {
   /** Render the 3D field at all. */
   webgl: boolean;
-  /** Animate it, or hold a single static frame. */
+  /** Continuous idle motion: the drift shader effect and the slow
+   *  ambient rotation. Gated on prefers-reduced-motion, since this is
+   *  the kind of automatic, ongoing movement that setting exists to
+   *  suppress. */
   animate: boolean;
+  /** The field leaning toward the cursor. Kept independent of
+   *  prefers-reduced-motion - it's a small, bounded response to
+   *  something the visitor is actively doing (moving their mouse),
+   *  not automatic motion playing on its own, so it doesn't carry the
+   *  same accessibility concern the idle drift does. Still off on
+   *  touch devices, where there's no hover cursor for it to track. */
+  parallax: boolean;
   /** How many points to draw. */
   count: number;
   /** Device pixel ratio ceiling. */
@@ -23,7 +33,7 @@ function hasWebGL(): boolean {
 
 export function detectCapability(): Capability {
   if (typeof window === "undefined") {
-    return { webgl: false, animate: false, count: 0, maxDpr: 1 };
+    return { webgl: false, animate: false, parallax: false, count: 0, maxDpr: 1 };
   }
 
   const webgl = hasWebGL();
@@ -43,6 +53,7 @@ export function detectCapability(): Capability {
   return {
     webgl,
     animate: webgl && !reduced,
+    parallax: webgl && !coarse,
     count,
     maxDpr: mobile ? 1.5 : 1.75,
   };
