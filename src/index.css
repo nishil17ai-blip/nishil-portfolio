@@ -235,13 +235,15 @@ p {
   backdrop-filter: blur(2px);
 }
 
-/* ── Wordmark: NISHIL -> NL on scroll, same technique Anthropic uses
-   for ANTHROPIC -> AI. The letters that survive the collapse (N, L)
-   never move or resize; only the letters between them shrink away,
-   so the two forms read as the same mark rather than a swap. ── */
+/* ── Wordmark: "Nishil Patel" at the top of the page, crossfading to
+   "NEIL" on scroll - once collapsed to "NEIL", the mark itself opens
+   the assistant (same action as the "Ask NIEL" pill), instead of just
+   being a back-to-top link. Both strings are stacked in the same grid
+   cell so the swap crossfades in place without a layout-width jump,
+   regardless of how different "Nishil Patel" and "NEIL" are in length. */
 .nav-logo {
   position: relative;
-  display: inline-flex;
+  display: inline-grid;
   align-items: center;
   flex-shrink: 0;
   font-family: var(--mono);
@@ -288,29 +290,33 @@ p {
   opacity: 0.85;
 }
 
-.nav-logo-letter {
-  display: inline-block;
+.nav-logo-full,
+.nav-logo-short {
+  grid-area: 1 / 1;
   white-space: nowrap;
+  transition: opacity 0.35s ease, transform 0.4s ease;
 }
 
-.nav-logo-letter--collapsible {
-  max-width: 1.2em;
-  opacity: 1;
-  transform: translateY(0);
-  overflow: hidden;
-  transition: max-width 0.5s cubic-bezier(0.65, 0, 0.35, 1),
-    opacity 0.35s ease, transform 0.4s ease;
-}
-
-.nav-logo[data-scrolled="true"] .nav-logo-letter--collapsible {
-  max-width: 0;
+.nav-logo-short {
   opacity: 0;
   transform: translateY(-0.3em);
 }
 
+.nav-logo[data-scrolled="true"] .nav-logo-full {
+  opacity: 0;
+  transform: translateY(0.3em);
+}
+
+.nav-logo[data-scrolled="true"] .nav-logo-short {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .nav-logo-letter--collapsible {
-    transition: none;
+  .nav-logo-full,
+  .nav-logo-short {
+    transition: opacity 0.35s ease;
+    transform: none !important;
   }
 }
 
@@ -958,6 +964,18 @@ p {
     position: static;
     max-width: none;
   }
+  /* On desktop the dot sits on whichever side the fragment leans
+     toward (left fragments: dot-then-text; right fragments: mirrored,
+     text-then-dot) since they're scattered on alternating sides of the
+     page. Once collapsed into a single stacked list on mobile there's
+     only one column, so that alternation just reads as the dots
+     zig-zagging left/right down the list - reset every fragment back
+     to the plain left-aligned, dot-first layout regardless of its
+     `side`. */
+  .fragment--right {
+    flex-direction: row;
+    text-align: left;
+  }
   .hero {
     flex-direction: column;
     align-items: stretch;
@@ -979,17 +997,16 @@ p {
   .hero-field {
     order: 2;
   }
-  .hero-toast--bottom,
-  .hero-toast--top {
-    left: 1rem;
-    right: 1rem;
-    max-width: none;
-  }
-  .hero-toast--bottom {
-    bottom: 5.5rem;
-  }
-  .hero-toast--top {
-    top: 5.5rem;
+  /* The toast is `position: fixed`, so on the desktop layout it floats
+     harmlessly over empty space near the corner - but once the field
+     collapses to a static, stacked list right on the page (above),
+     that same fixed position lands the toast directly on top of the
+     fragment text at the bottom of the viewport instead. Rather than
+     re-position it into the flow, it's simplest to just not show it
+     on mobile at all - it was a nice-to-have aside, not something the
+     page depends on. */
+  .hero-toast {
+    display: none !important;
   }
 }
 

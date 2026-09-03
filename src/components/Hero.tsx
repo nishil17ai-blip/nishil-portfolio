@@ -53,7 +53,14 @@ const INTRO_START_MS = 400;
 
 const NIEL_GREETING = "Hi, I am NIEL, NIshil patEL's AI Assistant";
 
-const FRAGMENTS_KICKER = "What I actually do is scattered around this page. Click below.";
+const FRAGMENTS_KICKER_DESKTOP = "What I actually do is scattered around this page. Click below.";
+const FRAGMENTS_KICKER_MOBILE = "What I actually do is listed below. Tap to reveal it.";
+
+// Below 900px the scattered field collapses to a plain stacked list
+// (see the matching breakpoint in index.css) - "scattered around this
+// page" stops being true once it's just a vertical list, so the kicker
+// text swaps to something that actually describes that layout.
+const MOBILE_FIELD_QUERY = "(max-width: 900px)";
 
 /* five scattered fragments, staggered top-to-bottom on alternating
    sides, clear of the centered column and the top-right badge */
@@ -61,7 +68,7 @@ const FRAGMENTS_KICKER = "What I actually do is scattered around this page. Clic
 const FRAGMENTS: { id: string; text: string; style: React.CSSProperties; side: "left" | "right" }[] = [
   { id: "retrieval", text: "Retrieval engineered to extract exact chunks, not top-k noise.", style: { top: "9%", left: "6%" }, side: "left" },
   { id: "backend", text: "Backends built to stay reliable under enterprise usage.", style: { top: "32%", right: "6%" }, side: "right" },
-  { id: "orchestration", text: "Multi-model orchestration bridging Claude, ChatGPT and Airflow.", style: { top: "54%", left: "4%" }, side: "left" },
+  { id: "orchestration", text: "Multi-model orchestration bridging the LLMs with real enterprise data.", style: { top: "54%", left: "4%" }, side: "left" },
   { id: "context", text: "Context engineering optimized for token efficiency and low latency.", style: { top: "72%", right: "8%" }, side: "right" },
   { id: "reliability", text: "Automated real-time QC frameworks that guarantee grounded outputs.", style: { top: "88%", left: "10%" }, side: "left" },
 ];
@@ -114,8 +121,17 @@ export function Hero({
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [sequenceRunning, setSequenceRunning] = useState(false);
   const [embeddingsOpen, setEmbeddingsOpen] = useState(false);
+  const [isMobileField, setIsMobileField] = useState(false);
   const introLine1 = useScramble(greeting.line1, introActive, INTRO_DECODE_MS);
   const introLine2 = useScramble(greeting.line2, introActive, INTRO_DECODE_MS);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_FIELD_QUERY);
+    const evaluate = () => setIsMobileField(mq.matches);
+    evaluate();
+    mq.addEventListener("change", evaluate);
+    return () => mq.removeEventListener("change", evaluate);
+  }, []);
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -172,7 +188,9 @@ export function Hero({
           <br />
           <span className="hero-intro-line">{introLine2}</span>
         </h1>
-        <div className="hero-kicker">{FRAGMENTS_KICKER}</div>
+        <div className="hero-kicker">
+          {isMobileField ? FRAGMENTS_KICKER_MOBILE : FRAGMENTS_KICKER_DESKTOP}
+        </div>
 
         <div className="hero-cta">
           <button
@@ -205,7 +223,12 @@ export function Hero({
         </div>
       </div>
 
-      {toast && (
+      {/* Only ever shown on desktop - see isMobileField above. It's
+         `position: fixed`, and on the mobile stacked-list layout that
+         fixed position lands it right on top of the fragment text, so
+         it's simplest not to render it at all below the breakpoint
+         rather than rely on a CSS override to hide it. */}
+      {toast && !isMobileField && (
         <div
           className={`hero-toast hero-toast--bottom ${
             toast === "gone" ? "hero-toast--out" : ""
