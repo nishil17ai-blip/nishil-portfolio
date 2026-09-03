@@ -9,13 +9,14 @@ const LINKS = [
   { id: "contact", label: "Contact" },
 ];
 
-// The wordmark morph keeps these two letters visible at all times and
-// collapses everything between them - mirroring how Anthropic's
-// ANTHROPIC -> AI works (first letter, then the letters that spell the
-// short form, everything else shrinks to nothing). NISHIL -> N + L
-// reads as "NL", the initials, once scrolled.
-const NAME_LETTERS = ["N", "I", "S", "H", "I", "L"];
-const KEPT_INDICES = new Set([0, 5]); // "N" ... "L"
+// Full name at the top of the page, collapsing to the assistant's name
+// once scrolled. Clicking the mark opens the assistant at either
+// state - "Ask NIEL" while scrolled (mark reads "NEIL"), and now the
+// same action from the top of the page too (mark reads "Nishil
+// Patel") - rather than the top state being a separate back-to-top
+// link like it was before.
+const FULL_NAME = "Nishil Patel";
+const SHORT_NAME = "NEIL";
 
 // How far down the page before the mark is considered "scrolled" -
 // small enough that it reacts almost immediately, matching the snappy
@@ -33,9 +34,9 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Drives the wordmark morph: full "NISHIL" at the very top of the
-  // page, collapsing to "NL" the moment the visitor scrolls past the
-  // threshold, and expanding back the instant they return to the top -
+  // Drives the wordmark swap: full "Nishil Patel" at the very top of
+  // the page, crossfading to "NEIL" the moment the visitor scrolls
+  // past the threshold, and back the instant they return to the top -
   // both directions, exactly like Anthropic's header.
   useEffect(() => {
     const evaluate = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -77,23 +78,32 @@ export function Nav({ active, chatOpen, showChatBtn, onChatToggle }: NavProps) {
     onChatToggle();
   }
 
+  // Both states now do the same thing: open the assistant. The
+  // scrolled/"NEIL" click already did this; this just extends the
+  // same behavior to the top-of-page/"Nishil Patel" state too, since
+  // it's the primary way into NIEL directly from the logo at any
+  // scroll position now, not just after scrolling.
+  function handleLogoClick() {
+    onChatToggle();
+  }
+
+  const logoLabel = chatOpen ? "Close assistant" : "Ask NIEL - open assistant";
+
   const logo = (
-    <a
-      href="#top"
+    <button
+      type="button"
       className="nav-logo"
       data-scrolled={scrolled}
-      aria-label="Nishil Patel - back to top"
+      onClick={handleLogoClick}
+      aria-label={logoLabel}
     >
-      {NAME_LETTERS.map((letter, i) => (
-        <span
-          key={i}
-          className={`nav-logo-letter${KEPT_INDICES.has(i) ? "" : " nav-logo-letter--collapsible"}`}
-          aria-hidden={scrolled && !KEPT_INDICES.has(i) ? true : undefined}
-        >
-          {letter}
-        </span>
-      ))}
-    </a>
+      <span className="nav-logo-full" aria-hidden={scrolled}>
+        {FULL_NAME}
+      </span>
+      <span className="nav-logo-short" aria-hidden={!scrolled}>
+        {SHORT_NAME}
+      </span>
+    </button>
   );
 
   return (
