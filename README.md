@@ -4,16 +4,10 @@
 
 ### I build LLM systems that hold up in production.
 
-AI Engineer at **Fortifai Inc.**, working on an enterprise due‑diligence platform that orchestrates
-Claude and OpenAI models into structured risk reports. This repo is my portfolio site — and it's also
-the largest example of my own work that's actually public, since the rest sits behind employer NDAs.
-
-[![Live Site](https://img.shields.io/badge/Live_Site-visit-16A34A?style=for-the-badge&logo=vercel&logoColor=white)](#)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/nishil-patel-a64161266/)
 [![Email](https://img.shields.io/badge/Email-say_hi-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:nishil1753@gmail.com)
 [![Resume](https://img.shields.io/badge/Resume-PDF-grey?style=for-the-badge&logo=readdotcv&logoColor=white)](public/Nishil_Patel_Resume.pdf)
 
-<sub>⚠️ The **Live Site** badge is a placeholder — swap in the `.vercel.app` (or custom) URL once deployed.</sub>
 
 </div>
 
@@ -325,36 +319,7 @@ the "what's the capital of France" crowd don't burn quota.
 </details>
 
 <br>
-
-## About me
-
-I'm an AI Engineer based in Ahmedabad, India, currently building the backend for **D7** — an AI‑powered
-third‑party due‑diligence product — at **Fortifai Inc.** I spend most of my time on the unglamorous half
-of LLM engineering: retrieval that returns the right chunk, pipelines that fail loudly instead of
-silently, and token budgets that don't quietly triple.
-
-**Currently:**
-- Owning D7's production backend end‑to‑end — Python, FastAPI, PostgreSQL, orchestrating Claude and
-  OpenAI through JSON chunking, context engineering, and response caching
-- Building D7's automated QC framework — every narrative, number, and risk score checked against source
-  data in real time
-- Architecting a compliance platform around LangChain, with LangGraph evaluated for multi‑step agent flows
-
-**Before that:** a natural‑language‑to‑SQL fraud‑detection assistant over procurement data at Alchemyte
-Data Solutions — Python, SQL, Vanna AI, GPT‑4 — where I owned the prompt‑engineering layer.
-
-**Education:** B.Tech, Computer Engineering — Pandit Deendayal Energy University, Gandhinagar (2021–2025)
-
-<sub>I'm open to conversations about AI engineering roles.</sub>
-
-<br>
-
-## Publications
-
-- **"Forecasting Maximum Temperature Trends with SARIMAX: A Case Study from Ahmedabad, India"** — *MDPI*, Journal Paper → [read it](https://www.mdpi.com/2071-1050/16/16/7183)
-- **"Ciphering the Modern World: A Comprehensive Analysis of DES, AES, RSA, and DHKE"** — *IEEE*, Conference Paper → [read it](https://ieeexplore.ieee.org/document/10498330/)
-- **"Mastering Data Analysis and Data Visualization with Time Series Techniques in Python"** — *Medium*, Article → [read it](https://medium.com/@nishilpatel1705/mastering-data-analysis-and-data-visualization-with-time-series-technique-in-python-d42f36620b17)
-
+ 
 <br>
 
 ## Get in touch
