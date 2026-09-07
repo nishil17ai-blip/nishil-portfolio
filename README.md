@@ -13,24 +13,6 @@
 
 <br>
 
-<div align="center">
-<img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white&style=flat-square" />
-<img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white&style=flat-square" />
-<img src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white&style=flat-square" />
-<img src="https://img.shields.io/badge/Three.js-WebGL%2FGLSL-000000?logo=threedotjs&logoColor=white&style=flat-square" />
-<img src="https://img.shields.io/badge/Zustand-state-443E38?style=flat-square" />
-<img src="https://img.shields.io/badge/Vercel-Functions-000000?logo=vercel&logoColor=white&style=flat-square" />
-<img src="https://img.shields.io/badge/Groq-LPU_inference-F55036?style=flat-square" />
-</div>
-
-<br>
-
-> **Note on screenshots:** drop a screen recording or GIF of the scroll‑reactive background and the chat
-> widget right here before you publish. A 10‑second clip of the point cloud condensing into clusters
-> sells this page harder than any paragraph below does.
-
-<br>
-
 ## Table of contents
 
 - [What this is](#what-this-is)
