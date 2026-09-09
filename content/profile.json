@@ -129,7 +129,7 @@
       "name": "This site",
       "subtitle": "Built end-to-end, down to the shader",
       "proprietary": false,
-      "blurb": "Everything here is hand-built rather than templated: a custom WebGL background that morphs from a diffuse point cloud into labelled clusters as you scroll, an entity-relationship-style skills diagram drawn in raw SVG, and a grounded question-answering assistant over my own profile using full-context injection instead of RAG. No component library carrying the design, no charting package drawing the diagrams - the interesting parts are the parts I wrote.",
+      "blurb": "Everything here is hand-built rather than templated: a custom WebGL background that morphs from a diffuse point cloud into labelled clusters as you scroll, an entity-relationship-style skills diagram drawn in raw SVG, and a grounded question-answering assistant over my own profile using full-context injection along with RAG. No component library carrying the design, no charting package drawing the diagrams - the interesting parts are the parts I wrote.",
       "points": [
         "A custom Three.js/GLSL background: a field of points that condenses from an undifferentiated cloud into labelled clusters as you scroll, and visibly reacts when the on-site assistant is retrieving an answer.",
         "An ER-diagram-style skills visualization built in plain SVG and React state - hover or search to trace which tools sit under which domain, with no charting library involved.",
