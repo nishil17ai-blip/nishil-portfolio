@@ -33,11 +33,13 @@
         "Claude",
         "OpenAI",
         "LangChain",
+        "LangGraph",
         "Airflow"
       ],
       "paragraphs": [
-        "Built and maintained production backend for D7, an AI-powered due diligence product that orchestrates Anthropic Claude and OpenAI models to generate structured enterprise risk reports. Developed D7's Quality Control (QC) automation as configurable workflows for due diligence report validation.",
-        "Designed a structural compliance platform using Langchain for document retrieval and partnered with the Data Engineering Team on Apache Airflow orchestration supporting enterprise AI data pipelines."
+        "Engineered and maintained backend services for D7, a production due diligence platform, integrating model orchestration, data processing and report generation workflows into scalable API services.",
+        "Owned the design and implementation of configurable Quality Control (QC) workflows, establishing automated validation across generated reports to improve consistency, data integrity and release reliability.",
+        "Architected a document compliance workflow using LangChain and LangGraph and collaborated with the Data Engineering team to integrate Apache Airflow orchestration supporting enterprise AI data pipelines."
       ]
     },
     {
@@ -56,8 +58,8 @@
         "PostgreSQL"
       ],
       "paragraphs": [
-        "Built an LLM-powered fraud detection assistant using Python, SQL and Vanna AI owning the prompt engineering layer with GPT-4 for natural language-to-SQL generation over PostgreSQL-backed procurement schemas.",
-        "Improved query reliability and accuracy for audit and compliance teams."
+        "Engineered a natural language-to-SQL generation workflow for audit teams, translating business questions into executable SQL across complex PostgreSQL procurement schemas.",
+        "Designed and refined the query-generation layer using Python, Vanna AI and GPT-4, improving query reliability through schema-aware prompting, validation rules and controlled SQL generation."
       ]
     }
   ],
@@ -67,11 +69,11 @@
       "name": "D7",
       "subtitle": "AI-powered third-party due diligence",
       "proprietary": true,
-      "blurb": "A platform that turns structured analytical data into dimension-specific narratives, risk scores and full enterprise risk reports. LLM inference is optimized through JSON chunking, context engineering and response caching and an automated QC framework grounds every narrative, number and risk score against the source data in real time. I own the backend end to end.",
+      "blurb": "A platform that turns structured analytical data into dimension-specific narratives, risk scores, and full enterprise risk reports. I own the backend end-to-end: a data-to-report pipeline where I cut both token consumption and report latency by ~33%, alongside a QC framework that runs 100+ real-time checks per report to ground every narrative and score against source data.",
       "points": [
-        "Transforms structured analytical data into narratives, risk scores and enterprise risk reports using LLMs.",
-        "LLM inference optimized through JSON chunking, context engineering, prompt optimization and API response caching, cutting token consumption while holding output quality.",
-        "An automated QC framework audits generated reports in real time, checking that every narrative, number and risk score is grounded in the source data."
+        "Engineered a data-to-report pipeline processing 70+ due diligence reports across varying risk dimensions, turning structured analytical data into dimension-level narratives, risk assessments and consolidated reports.",
+        "Reduced token consumption by ~33% through structured JSON chunking, token streaming and prompt caching, while cutting report-generation latency by 33% (45 minutes to 30 minutes).",
+        "Built a multi-layer QC framework validating 100+ checks per report across narratives, numbers and risk scores against source data, reducing manual validation effort by ~70%."
       ],
       "stack": [
         "Python",
@@ -85,19 +87,20 @@
     {
       "id": "compliance",
       "name": "Enterprise AI Compliance Assistant",
-      "subtitle": "Document retrieval and structured reporting",
+      "subtitle": "Multi-agent LangGraph workflow for document retrieval and reporting",
       "proprietary": true,
-      "blurb": "A compliance platform for enterprise document retrieval, risk analysis and structured report generation, architected around LangChain for orchestration with LangGraph evaluated for multi-step agent flows.",
+      "blurb": "A compliance platform for enterprise document retrieval, risk analysis and structured report generation, architected as a 4-agent LangGraph workflow with multi-layer output validation against source documents. Context engineering across the pipeline cut workflow latency in half i.e. from 8 minutes down to 4.",
       "points": [
-        "Architected around LangChain for orchestration, with LangGraph evaluated for multi-step agent flows.",
-        "Handles enterprise document retrieval, risk analysis and structured compliance report generation."
+        "Architected a 4-agent LangGraph workflow for document retrieval, risk analysis, compliance report generation and output validation.",
+        "Evaluated agent-based document processing against plain Python PDF extraction, achieving more reliable handling of complex document structures, tables and multiple formats.",
+        "Implemented multi-layer output validation - source-document cross-checking, structured schema validation, hallucination and grounding checks - and cut workflow latency by 50% (8 minutes to 4 minutes) through context engineering."
       ],
       "stack": [
         "Python",
         "FastAPI",
         "OpenAI",
-        "LangChain",
-        "PostgreSQL"
+        "LangGraph",
+        "pgvector"
       ],
       "note": "Internal platform. Architecture and code are not public."
     },
@@ -109,7 +112,7 @@
       "blurb": "Audit and compliance teams ask questions in plain English; the assistant, built with Python, SQL, Vanna AI and GPT-4, writes and runs the SQL against procurement schemas. I owned the prompt engineering layer, which is where most of the reliability came from.",
       "points": [
         "Built with Python, SQL and Vanna AI, with GPT-4 driving natural-language-to-SQL generation.",
-        "I owned the prompt engineering layer, which is where most of the reliability came from.",
+        "Owned the query-generation layer - schema-aware prompting, validation rules and controlled SQL generation - which is where most of the reliability came from.",
         "Improved query reliability and accuracy for audit and compliance workflows."
       ],
       "stack": [
@@ -122,28 +125,28 @@
       "note": "Client work. Code is not public."
     },
     {
-    "id": "Portfolio",
-    "name": "This site",
-    "subtitle": "Built end-to-end, down to the shader",
-    "proprietary": false,
-    "blurb": "Everything here is hand-built rather than templated: a custom WebGL background that morphs from a diffuse point cloud into labelled clusters as you scroll, an entity-relationship-style skills diagram drawn in raw SVG, and a grounded question-answering assistant over my own profile using full-context injection instead of RAG. No component library carrying the design, no charting package drawing the diagrams - the interesting parts are the parts I wrote.",
-    "points": [
-      "A custom Three.js/GLSL background: a field of points that condenses from an undifferentiated cloud into labelled clusters as you scroll, and visibly reacts when the on-site assistant is retrieving an answer.",
-      "An ER-diagram-style skills visualization built in plain SVG and React state - hover or search to trace which tools sit under which domain, with no charting library involved.",
-      "A grounded question-answering assistant over my own profile: full-context injection rather than retrieval, since the whole profile is roughly 1,200 tokens and chunking would add failure modes to solve a problem that doesn't exist at this size.",
-      "Grounding enforced with structured output rather than string-matching, answers cached and rate-limited per visitor, and the assistant regression-tested against a fixed question set before every deploy."
-    ],
-    "stack": [
-      "TypeScript",
-      "React",
-      "Three.js",
-      "WebGL/GLSL",
-      "Vercel Functions",
-      "Groq"
-    ],
-    "note": "UPDATE: add the repo link once the repo is public."
-  }
-],
+      "id": "Portfolio",
+      "name": "This site",
+      "subtitle": "Built end-to-end, down to the shader",
+      "proprietary": false,
+      "blurb": "Everything here is hand-built rather than templated: a custom WebGL background that morphs from a diffuse point cloud into labelled clusters as you scroll, an entity-relationship-style skills diagram drawn in raw SVG, and a grounded question-answering assistant over my own profile using full-context injection instead of RAG. No component library carrying the design, no charting package drawing the diagrams - the interesting parts are the parts I wrote.",
+      "points": [
+        "A custom Three.js/GLSL background: a field of points that condenses from an undifferentiated cloud into labelled clusters as you scroll, and visibly reacts when the on-site assistant is retrieving an answer.",
+        "An ER-diagram-style skills visualization built in plain SVG and React state - hover or search to trace which tools sit under which domain, with no charting library involved.",
+        "A grounded question-answering assistant over my own profile: full-context injection rather than retrieval, since the whole profile is roughly 1,200 tokens and chunking would add failure modes to solve a problem that doesn't exist at this size.",
+        "Grounding enforced with structured output rather than string-matching, answers cached and rate-limited per visitor, and the assistant regression-tested against a fixed question set before every deploy."
+      ],
+      "stack": [
+        "TypeScript",
+        "React",
+        "Three.js",
+        "WebGL/GLSL",
+        "Vercel Functions",
+        "Groq"
+      ],
+      "note": "UPDATE: add the repo link once the repo is public."
+    }
+  ],
   "skills": [
     {
       "group": "Languages",
@@ -157,29 +160,41 @@
       "group": "Generative AI",
       "items": [
         "LLMs",
+        "RAG",
         "Prompt engineering",
-        "Context engineering",
-        "AI agents",
-        "RAG"
+        "Context engineering"
       ]
     },
     {
-      "group": "Frameworks",
+      "group": "Agentic AI",
       "items": [
         "LangChain",
         "LangGraph",
+        "LangSmith",
         "CrewAI",
-        "Vanna AI",
-        "Flowise",
-        "MCP"
+        "Multi-agent systems",
+        "Tool calling"
+      ]
+    },
+    {
+      "group": "Machine Learning",
+      "items": [
+        "Scikit-learn",
+        "Hugging Face",
+        "TensorFlow",
+        "Keras",
+        "Pandas",
+        "NumPy",
+        "Feature engineering",
+        "Model evaluation"
       ]
     },
     {
       "group": "LLMOps",
       "items": [
         "Prompt versioning",
-        "Token & cost optimization",
         "LLM evaluation",
+        "Token & cost optimization",
         "Caching",
         "Latency optimization"
       ]
@@ -196,14 +211,15 @@
       ]
     },
     {
-      "group": "Backend & data",
+      "group": "Backend & databases",
       "items": [
         "FastAPI",
         "Flask",
         "REST",
         "Pydantic",
-        "Vector databases",
         "PostgreSQL",
+        "pgvector",
+        "ChromaDB",
         "MySQL",
         "NoSQL"
       ]

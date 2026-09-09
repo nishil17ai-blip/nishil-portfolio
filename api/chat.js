@@ -60,7 +60,7 @@ function buildContext(p) {
   lines.push("");
 
   const e = p.education;
-  lines.push(`EDUCATION: ${e.degree}, ${e.school}, ${e.location}, ${e.years}. ${e.detail}`);
+  lines.push(`EDUCATION: ${e.degree}, ${e.school}, ${e.location}, ${e.years}.`);
 
   return lines.join("\n");
 }
